@@ -1,12 +1,15 @@
 import { Capacitor } from '@capacitor/core';
 import type { Product, Category, User } from '../types';
-import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockProducts';
+import { supabase } from './supabase';
+import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockCatalog';
 
 export const getApiBaseUrl = (): string => {
   const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
   if (typeof window !== 'undefined') {
     if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      return envUrl.replace('localhost', window.location.hostname).replace('127.0.0.1', window.location.hostname);
+      if (!window.location.hostname.includes('vercel.app')) {
+        return envUrl.replace('localhost', window.location.hostname).replace('127.0.0.1', window.location.hostname);
+      }
     }
     if (Capacitor.isNativePlatform()) {
       if (envUrl.includes('localhost') || envUrl.includes('127.0.0.1')) {
@@ -62,37 +65,102 @@ export const api = {
   },
 
   /**
-   * Fetch all products with SWR caching
+   * Fetch all products with SWR caching, Supabase Cloud query & initial catalog guarantees
    */
   async getProducts(params?: { category?: string; search?: string; sort?: string; max_price?: number }): Promise<Product[]> {
-    const query = new URLSearchParams();
-    if (params?.category) query.append('category', params.category);
-    if (params?.search) query.append('search', params.search);
-    if (params?.sort) query.append('sort', params.sort);
-    if (params?.max_price) query.append('max_price', params.max_price.toString());
-
     const isDefaultCatalog = !params?.category && !params?.search && !params?.sort && !params?.max_price;
 
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
-      const res = await fetch(`${API_BASE_URL}/products?${query.toString()}`, { signal: controller.signal });
-      clearTimeout(timeoutId);
+    // 1. Try local/configured REST API if not on a pure Vercel client domain
+    const isLocalApi = !API_BASE_URL.includes('vercel.app');
+    if (isLocalApi) {
+      try {
+        const query = new URLSearchParams();
+        if (params?.category) query.append('category', params.category);
+        if (params?.search) query.append('search', params.search);
+        if (params?.sort) query.append('sort', params.sort);
+        if (params?.max_price) query.append('max_price', params.max_price.toString());
 
-      if (res.ok) {
-        const data = await res.json();
-        const prods = data.products || [];
-        if (prods.length > 0) {
-          if (isDefaultCatalog) {
-            setLocalCache('catalog_products', prods);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch(`${API_BASE_URL}/products?${query.toString()}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          const prods = data.products || [];
+          if (prods.length > 0) {
+            if (isDefaultCatalog) setLocalCache('catalog_products', prods);
+            return prods;
           }
-          return prods;
         }
+      } catch {
+        // Fall through to direct Supabase Cloud query
       }
-    } catch {
-      // Backend offline or unreachable, fall back to rich catalog
     }
 
+    // 2. Query Supabase Cloud directly
+    try {
+      let query = supabase
+        .from('products')
+        .select('*, images:product_images(*), variants:product_variants(*), category:categories(name, slug)')
+        .eq('is_active', true);
+
+      if (params?.search) {
+        query = query.ilike('name', `%${params.search}%`);
+      }
+      if (params?.max_price) {
+        query = query.lte('base_price', params.max_price);
+      }
+      if (params?.sort === 'price_asc') {
+        query = query.order('base_price', { ascending: true });
+      } else if (params?.sort === 'price_desc') {
+        query = query.order('base_price', { ascending: false });
+      } else if (params?.sort === 'rating') {
+        query = query.order('rating', { ascending: false });
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
+
+      const { data: sbProds, error: sbError } = await query;
+      if (!sbError && sbProds && sbProds.length > 0) {
+        let formatted: Product[] = sbProds.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          description: p.description,
+          category_id: p.category_id,
+          category_name: p.category?.name || '',
+          category_slug: p.category?.slug || '',
+          base_price: Number(p.base_price),
+          compare_at_price: p.compare_at_price ? Number(p.compare_at_price) : undefined,
+          sku: p.sku,
+          stock: p.stock,
+          is_active: p.is_active,
+          is_featured: p.is_featured,
+          is_bestseller: p.is_bestseller,
+          rating: Number(p.rating),
+          review_count: p.review_count,
+          badge: p.badge,
+          images: (p.images || []).sort((a: any, b: any) => a.display_order - b.display_order),
+          variants: p.variants || [],
+          created_at: p.created_at,
+          updated_at: p.updated_at,
+        }));
+
+        if (params?.category) {
+          formatted = formatted.filter((p) => p.category_slug === params.category || p.category_id === params.category);
+        }
+
+        if (isDefaultCatalog && formatted.length > 0) {
+          setLocalCache('catalog_products', formatted);
+        }
+        return formatted;
+      }
+    } catch {
+      // Fall through to initial fallback
+    }
+
+    // 3. Fallback to cached or rich initial products
     let list = getLocalCache<Product[]>('catalog_products') || INITIAL_PRODUCTS;
     if (params?.category) {
       list = list.filter((p) => p.category_slug === params.category || p.category_id === params.category);
@@ -104,16 +172,12 @@ export const api = {
     if (params?.max_price) {
       list = list.filter((p) => p.base_price <= params.max_price!);
     }
-    if (params?.sort) {
-      if (params.sort === 'price_asc') {
-        list = [...list].sort((a, b) => a.base_price - b.base_price);
-      } else if (params.sort === 'price_desc') {
-        list = [...list].sort((a, b) => b.base_price - a.base_price);
-      } else if (params.sort === 'rating') {
-        list = [...list].sort((a, b) => b.rating - a.rating);
-      } else if (params.sort === 'bestseller') {
-        list = [...list].sort((a, b) => (b.is_bestseller ? 1 : 0) - (a.is_bestseller ? 1 : 0));
-      }
+    if (params?.sort === 'price_asc') {
+      list = [...list].sort((a, b) => a.base_price - b.base_price);
+    } else if (params?.sort === 'price_desc') {
+      list = [...list].sort((a, b) => b.base_price - a.base_price);
+    } else if (params?.sort === 'rating') {
+      list = [...list].sort((a, b) => b.rating - a.rating);
     }
     return list;
   },
@@ -122,43 +186,100 @@ export const api = {
    * Fetch product by slug
    */
   async getProductBySlug(slug: string): Promise<Product | undefined> {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
-      const res = await fetch(`${API_BASE_URL}/products/${slug}`, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.product) return data.product;
-      }
-    } catch {
-      // Fallback
+    // 1. Check cached catalog
+    const cachedProds = getLocalCache<Product[]>('catalog_products') || INITIAL_PRODUCTS;
+    const found = cachedProds.find((p) => p.slug === slug);
+    if (found) return found;
+
+    // 2. Try REST API if local
+    const isLocalApi = !API_BASE_URL.includes('vercel.app');
+    if (isLocalApi) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch(`${API_BASE_URL}/products/${slug}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          return data.product;
+        }
+      } catch {}
     }
 
-    const list = getLocalCache<Product[]>('catalog_products') || INITIAL_PRODUCTS;
-    return list.find((p) => p.slug === slug || p.id === slug);
+    // 3. Try Supabase direct query
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, images:product_images(*), variants:product_variants(*), category:categories(name, slug)')
+        .eq('slug', slug)
+        .single();
+
+      if (!error && data) {
+        return {
+          id: data.id,
+          name: data.name,
+          slug: data.slug,
+          description: data.description,
+          category_id: data.category_id,
+          category_name: data.category?.name || '',
+          category_slug: data.category?.slug || '',
+          base_price: Number(data.base_price),
+          compare_at_price: data.compare_at_price ? Number(data.compare_at_price) : undefined,
+          sku: data.sku,
+          stock: data.stock,
+          is_active: data.is_active,
+          is_featured: data.is_featured,
+          is_bestseller: data.is_bestseller,
+          rating: Number(data.rating),
+          review_count: data.review_count,
+          badge: data.badge,
+          images: (data.images || []).sort((a: any, b: any) => a.display_order - b.display_order),
+          variants: data.variants || [],
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+        };
+      }
+    } catch {}
+
+    return INITIAL_PRODUCTS.find((p) => p.slug === slug);
   },
 
   /**
-   * Fetch categories with SWR caching
+   * Fetch categories with SWR caching & Supabase Cloud fallback
    */
   async getCategories(): Promise<Category[]> {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
-      const res = await fetch(`${API_BASE_URL}/categories`, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (res.ok) {
-        const data = await res.json();
-        const cats = data.categories || [];
-        if (cats.length > 0) {
-          setLocalCache('catalog_categories', cats);
-          return cats;
+    // 1. Try REST API if local
+    const isLocalApi = !API_BASE_URL.includes('vercel.app');
+    if (isLocalApi) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch(`${API_BASE_URL}/categories`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          const cats = data.categories || [];
+          if (cats.length > 0) {
+            setLocalCache('catalog_categories', cats);
+            return cats;
+          }
         }
-      }
-    } catch {
-      // Fallback
+      } catch {}
     }
+
+    // 2. Query Supabase directly
+    try {
+      const { data: sbCats, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (!error && sbCats && sbCats.length > 0) {
+        setLocalCache('catalog_categories', sbCats);
+        return sbCats;
+      }
+    } catch {}
 
     return getLocalCache<Category[]>('catalog_categories') || INITIAL_CATEGORIES;
   },
