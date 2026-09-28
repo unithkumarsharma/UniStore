@@ -1,0 +1,18 @@
+{
+  "short_name": "UniStore",
+  "name": "UniStore — Discover More. Live Better.",
+  "description": "Curated everyday essentials for modern living. Discover handpicked lifestyle goods, audio, home decor, and personal tech.",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#fbf9f5",
+  "theme_color": "#fbf9f5",
+  "display": "standalone",
+  "orientation": "portrait"
+}

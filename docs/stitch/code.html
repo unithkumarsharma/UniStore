@@ -1,0 +1,597 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>UniStore — Discover More. Live Better.</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed": "#ffddaf",
+            "surface-container": "#f0eeea",
+            "on-secondary-container": "#60656b",
+            "surface-container-high": "#eae8e4",
+            "on-secondary": "#ffffff",
+            "inverse-surface": "#30312e",
+            "secondary": "#5a5f65",
+            "surface-dim": "#dbdad6",
+            "surface-container-highest": "#e4e2de",
+            "on-error-container": "#93000a",
+            "on-surface": "#1b1c1a",
+            "primary-fixed-dim": "#ffb68c",
+            "inverse-on-surface": "#f2f0ec",
+            "on-primary": "#ffffff",
+            "outline": "#8b7265",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed": "#321200",
+            "outline-variant": "#dec1b1",
+            "surface": "#fbf9f5",
+            "primary-fixed": "#ffdbc9",
+            "on-secondary-fixed": "#171c21",
+            "tertiary-container": "#d18f00",
+            "on-secondary-fixed-variant": "#42474d",
+            "secondary-fixed-dim": "#c2c7ce",
+            "primary-container": "#f47a20",
+            "secondary-container": "#dee3ea",
+            "on-tertiary-container": "#482f00",
+            "on-background": "#1b1c1a",
+            "background": "#fbf9f5",
+            "secondary-fixed": "#dee3ea",
+            "surface-tint": "#9a4600",
+            "tertiary-fixed-dim": "#ffba43",
+            "primary": "#9a4600",
+            "on-tertiary-fixed": "#281800",
+            "error-container": "#ffdad6",
+            "error": "#ba1a1a",
+            "on-primary-fixed-variant": "#753400",
+            "tertiary": "#805600",
+            "on-tertiary-fixed-variant": "#614000",
+            "on-primary-container": "#582500",
+            "on-error": "#ffffff",
+            "surface-container-low": "#f5f3ef",
+            "surface-variant": "#e4e2de",
+            "on-tertiary": "#ffffff",
+            "on-surface-variant": "#574237",
+            "surface-bright": "#fbf9f5",
+            "inverse-primary": "#ffb68c"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "2.5rem",
+            "space-lg": "1.5rem",
+            "margin-mobile": "1rem",
+            "margin": "3rem",
+            "space-sm": "0.5rem",
+            "gutter-mobile": "1rem",
+            "space-md": "1rem",
+            "gutter": "1.5rem",
+            "space-xs": "0.25rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"],
+            "display-mobile": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "label-sm": ["Plus Jakarta Sans"],
+            "display": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["26px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "display-mobile": ["36px", { "lineHeight": "42px", "letterSpacing": "-0.025em", "fontWeight": "800" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "label-lg": ["14px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700" }],
+            "display": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .card-shadow {
+      box-shadow: 0 8px 24px -4px rgba(21, 26, 31, 0.05), 0 2px 6px -1px rgba(21, 26, 31, 0.03);
+    }
+    .nav-dock-shadow {
+      box-shadow: 0 -4px 20px rgba(21, 26, 31, 0.06);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen pb-28 selection:bg-primary-container selection:text-white">
+<!-- TOP APP BAR (from Shared Components JSON: TopAppBar) -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-mobile h-16 bg-surface/90 backdrop-blur-md shadow-sm">
+<!-- Leading Logo -->
+<div class="flex items-center gap-space-sm">
+<img alt="UniStore Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtPF7euignO5Hn_inTwFFqIHu1M8Lp_U-fTpfXhcoLYja2NEKm2LTwmFEHfJ6H13LkJhQsnZMBWU5P-DtpT13CjdD53gno_pdFSzgmajGvnh6HuIH_ZsMW3htvf68eQ7eY6cFhIxZQNM8DT7HaeUGMF0Tkf0KjrShBrITlubjlgFm5p-nA2ybQr9hmi7yHM85XDdcg6RNLZ8Emyu5NyqfHVp1Ussd3xURvzQNPsY4sI421O0SMFh9nZLERdFwKBrS4Kg">
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-space-xs">
+<button aria-label="Wishlist" class="relative p-2 rounded-full text-on-surface hover:text-primary transition-colors duration-150 active:scale-95">
+<span class="material-symbols-outlined text-[24px]">favorite</span>
+</button>
+<button aria-label="Notifications" class="relative p-2 rounded-full text-on-surface hover:text-primary transition-colors duration-150 active:scale-95">
+<span class="material-symbols-outlined text-[24px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-4 h-4 bg-primary-container text-white text-[10px] font-bold rounded-full flex items-center justify-center">2</span>
+</button>
+</div>
+</header>
+<!-- MAIN SCROLLABLE CONTAINER -->
+<main class="pt-16 max-w-md mx-auto">
+<!-- SEARCH & DELIVERY LOCATION BAR -->
+<section class="px-margin-mobile pt-3 pb-2 bg-surface">
+<!-- Search Input Container -->
+<div class="relative flex items-center bg-surface-container-lowest border border-surface-container rounded-xl px-3.5 py-3 shadow-sm focus-within:border-on-surface transition-all">
+<span class="material-symbols-outlined text-secondary text-[22px] mr-2">search</span>
+<input class="w-full bg-transparent border-0 p-0 text-on-surface placeholder:text-secondary font-body-md text-body-md focus:ring-0 focus:outline-none" placeholder="Search curated lifestyle, tech &amp; home..." type="text">
+<button aria-label="Scan Barcode" class="text-secondary hover:text-on-surface pl-2 border-l border-surface-container-high active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">barcode_scanner</span>
+</button>
+</div>
+<!-- Delivery Location Chip -->
+<div class="flex items-center justify-between mt-2.5 px-1 py-1">
+<div class="flex items-center gap-1.5 text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-primary-container text-[18px]">location_on</span>
+<span class="text-secondary">Deliver to</span>
+<span class="font-bold text-on-surface">Arjun • Mumbai 400050</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">expand_more</span>
+</div>
+<span class="text-primary-container font-label-sm text-label-sm font-bold bg-primary-fixed/40 px-2 py-0.5 rounded-full">INSTANT</span>
+</div>
+</section>
+<!-- HERO EDITORIAL BANNER -->
+<section class="px-margin-mobile pt-3 pb-4">
+<div class="relative overflow-hidden rounded-2xl bg-[#FFF9F1] border border-surface-container p-5 card-shadow">
+<!-- Ambient Warm Glow Background Decor -->
+<div class="absolute -top-12 -right-12 w-48 h-48 bg-primary-fixed/50 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute -bottom-8 -left-8 w-36 h-36 bg-tertiary-fixed/40 rounded-full blur-xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col justify-between">
+<div>
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-lowest/80 border border-surface-container backdrop-blur-sm mb-3">
+<span class="text-primary-container font-label-sm text-label-sm">✨ Handpicked Collection</span>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-extrabold tracking-tight">
+              Discover More.<br>Live Better.
+            </h1>
+<p class="font-body-md text-body-md text-secondary mt-1 max-w-[240px]">
+              Curated everyday essentials for modern living.
+            </p>
+</div>
+<!-- Hero Image Showcase -->
+<div class="mt-4 rounded-xl overflow-hidden aspect-[16/9] relative bg-surface-container-low border border-surface-container">
+<img class="w-full h-full object-cover" data-alt="An ultra-clean, minimalist desk and living scene with natural wood tones, ceramic coffee mugs, matte black wireless headphones, and lush indoor greenery bathed in soft, warm daylight. The aesthetic is curated, tranquil, and distinctly modern Scandinavian with warm cream and charcoal textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcn5QSb3ARFM4ifB7o6xYrsV-3QSi-ZMYRD8LJ7hjO-k3de0uTDqenAuB8hB5_Ni1c7rkuqac6BcvmpXtAo4gA1sTXuRjNOhv0OJreSe1xZs818qCF9fEMKi0e1_sUXgIBdn4USYDW3j5PSO2U-qD_Cvy9ebMuaLQoemc6ECsda4hIMvKtJ-A2KCE0zgaYCNKt2iyWKUKDa6L4cIRNxUxOvO86TFN91e7QLQMhaZQlQ2jmLomhJkBt">
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+<span class="text-white font-label-md text-label-md font-semibold drop-shadow-sm">Spring Curation 2025</span>
+<span class="bg-white/90 backdrop-blur-sm text-on-surface text-[11px] font-bold px-2 py-0.5 rounded-full">New In</span>
+</div>
+</div>
+<!-- CTA Button -->
+<div class="mt-4">
+<button class="w-full py-3.5 px-6 rounded-full bg-primary-container text-white font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 shadow-sm hover:brightness-105 active:scale-[0.98] transition-all">
+<span class="">Shop New Arrivals</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- CATEGORIES HORIZONTAL SCROLL -->
+<section class="py-3">
+<div class="px-margin-mobile flex items-center justify-between mb-3">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Shop by Category</h2>
+<a class="text-primary-container font-label-md text-label-md font-semibold hover:underline" href="#">View All</a>
+</div>
+<div class="flex gap-3 overflow-x-auto no-scrollbar px-margin-mobile pb-1">
+<!-- Category Pill 1 -->
+<div class="flex flex-col items-center flex-shrink-0 w-20 text-center group cursor-pointer">
+<div class="w-16 h-16 rounded-full p-0.5 border border-surface-container-high bg-surface-container-lowest card-shadow group-hover:border-primary-container transition-colors overflow-hidden">
+<img class="w-full h-full rounded-full object-cover" data-alt="Sleek matte charcoal high-end over-ear headphones and sleek aluminium accessories photographed on a soft warm stone pedestal in diffuse studio lighting. Minimalist editorial product aesthetics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdlnS4MOkaEwsdXZ2tedYgygDu9rDpvb0P-N4uwYcDSNCqZRU4hSUb20-E04ZzMvcjhmSS5QKAjS3Gyv7ewfpYheOAEyUlz-Xd-1OjhPl3rIYjo64sFPOdWPR0KXVftFyw7PZPScsZAnYEA8LawcNdtKA6NJNJOUmFRWBwI1a0oXZGKjfTU_Bpfr4JeViYBvQWvD1ugBRtX_pawCo-ZJTXyLAfr5-88AT8IckPVA4Kf6_PeP3hZHPj">
+</div>
+<span class="font-label-sm text-label-sm text-on-surface mt-2 font-medium">Tech &amp; Audio</span>
+</div>
+<!-- Category Pill 2 -->
+<div class="flex flex-col items-center flex-shrink-0 w-20 text-center group cursor-pointer">
+<div class="w-16 h-16 rounded-full p-0.5 border border-surface-container-high bg-surface-container-lowest card-shadow group-hover:border-primary-container transition-colors overflow-hidden">
+<img class="w-full h-full rounded-full object-cover" data-alt="Handcrafted ceramic vases and warm linen home decor pieces on a minimal oak shelf bathed in soft morning golden sunlight, modern Scandinavian interior design style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAacmwZimmZIYC3juaGtOifK8SJSsDMGCFa-V-s9QFdw6ieHZrWGp61iHNlkkfMTVQDq3VR8RIMZOqk6fmWWZjYUfFSFhauShMfj-2qFIuNsVW4w3Azg6sdMwhuYJlEJLKn7GP6D1G0uhc76qd76IhVm9F4TaIS5_ASmTu5kBQ3N3hi5F-4-nyWo6J5v1FBweRdOUfRo00hOsjc66des1m9IUDEctlL_rnH-CW7OH8kPDoDbgLCSB13">
+</div>
+<span class="font-label-sm text-label-sm text-on-surface mt-2 font-medium">Home &amp; Living</span>
+</div>
+<!-- Category Pill 3 -->
+<div class="flex flex-col items-center flex-shrink-0 w-20 text-center group cursor-pointer">
+<div class="w-16 h-16 rounded-full p-0.5 border border-surface-container-high bg-surface-container-lowest card-shadow group-hover:border-primary-container transition-colors overflow-hidden">
+<img class="w-full h-full rounded-full object-cover" data-alt="Artisanal ceramic pour-over coffee set with brass gooseneck kettle and glass carafe resting on an off-white textured tabletop with rich espresso tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5IvVUC2asOtzbboy1yfdDCWllQx0DIrmr3wI42WTQutXx4HJTgpI7eAB7ku3gbmov3sj1L1xNBwGFXpiBgeyuCbvSafAahmdru7LdZOAlG8EqgANIx-PcRkIkQo4ThdMXw2bNFzjl29qjiNmj58twums8Y0CFYt8fDQo-ykpuMnvth_wk6fQWfZwo12fs31I26XI5uOn8u1x0ZxaCStRFhOAi-UfHfU3fKR7XNycRgwvbrfxdCyni">
+</div>
+<span class="font-label-sm text-label-sm text-on-surface mt-2 font-medium">Coffee &amp; Kitchen</span>
+</div>
+<!-- Category Pill 4 -->
+<div class="flex flex-col items-center flex-shrink-0 w-20 text-center group cursor-pointer">
+<div class="w-16 h-16 rounded-full p-0.5 border border-surface-container-high bg-surface-container-lowest card-shadow group-hover:border-primary-container transition-colors overflow-hidden">
+<img class="w-full h-full rounded-full object-cover" data-alt="Organic glass amber bottles with dropper serums and natural stone gua sha tools on a clean travertine stone slab with warm neutral reflections." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD23Fz2B1QLCVlf5YwNzR7OYMmI3X9_D64XaXjjI7sD8rIyMiRSDCfcSfrZsWlanUNRKho2pEEPC-_dTxMiiFe5RfmsI9YV80X0CNdKfaRzrKmkDP7vD2c64jWxznNPfk1O-UFNOnlXY7qFeKkcW592aZ0RK2nYOJTmtK1JzQKinXrXyxA86NRZOxekYe84SrSxu4vm6ja8Ypz9gJP87sgMLjdb-1GKFjn9rF50RyTWAz49wVvpULOk">
+</div>
+<span class="font-label-sm text-label-sm text-on-surface mt-2 font-medium">Self Care</span>
+</div>
+<!-- Category Pill 5 -->
+<div class="flex flex-col items-center flex-shrink-0 w-20 text-center group cursor-pointer">
+<div class="w-16 h-16 rounded-full p-0.5 border border-surface-container-high bg-surface-container-lowest card-shadow group-hover:border-primary-container transition-colors overflow-hidden">
+<img class="w-full h-full rounded-full object-cover" data-alt="Ergonomic mechanical keyboard with custom cream keycaps, minimalist felt desk pad, and brass task lamp on a clean walnut desk in soft warm light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBne99KcCprzgZ-peQVDgam2cSmGSCNW8efhtcnQ8ygYNB5ERzQxh-OZGxxq4fwWe_nCdYJtJVi4UJuamAfdLZzp9Koxb667vAynk-shGw2v3rcoen3mGVvrHEV-eTWWoamIouDOb2kHwU5Wb8mqtQ1zXq8cnRO6JBeUOS248wdDL17ZGdE-6uZKRbASeLAQZ0scdOi6cOE_DufIL1ieCO9g7IJdQtHBTzgnCF4_R47feI3m84M7Orv">
+</div>
+<span class="font-label-sm text-label-sm text-on-surface mt-2 font-medium">Desk Setup</span>
+</div>
+<!-- Category Pill 6 -->
+<div class="flex flex-col items-center flex-shrink-0 w-20 text-center group cursor-pointer">
+<div class="w-16 h-16 rounded-full p-0.5 border border-surface-container-high bg-surface-container-lowest card-shadow group-hover:border-primary-container transition-colors overflow-hidden">
+<img class="w-full h-full rounded-full object-cover" data-alt="Durable weatherproof ballistic nylon everyday travel sling pack and compact passport organizer in rich charcoal and burnt orange accents on clean background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPCw-HT_gSh4NjQyXUvBfZmyCNxi3op8oBAeH6D52QTEel3NkTXDXtnS4rmxgCo1jhyaxOA7-zLqjPvOK5IcPa-OyC-4ozcaeilIYldHEJFYbaXcR7uLjKI4_ZKvZiQIaBEyhhgGFvA6lPV2gmSzR6w3yXI9Hu51w0nVVHB4YSIRWFsOtffDjZqCUt8aQ9beaSyVf7tML5cHtPcwkHbAix1rhDqNpMKGKXm78rlLqitwFGQ7kdSgfH">
+</div>
+<span class="font-label-sm text-label-sm text-on-surface mt-2 font-medium">Travel Gear</span>
+</div>
+</div>
+</section>
+<!-- TRENDING NOW (Curated 2-Column Product Grid) -->
+<section class="px-margin-mobile py-4">
+<div class="flex items-center justify-between mb-3.5">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Trending Now</h2>
+<p class="font-body-sm text-body-sm text-secondary">Verified top picks by design lovers</p>
+</div>
+<div class="flex items-center gap-1 text-primary-container font-label-md text-label-md font-semibold cursor-pointer">
+<span class="">Filter</span>
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</div>
+</div>
+<!-- 2-Column Product Grid -->
+<div class="grid grid-cols-2 gap-3">
+<!-- Product 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-3 border border-surface-container card-shadow flex flex-col justify-between group">
+<div>
+<!-- Image & Micro Badges -->
+<div class="relative w-full aspect-square rounded-lg bg-surface-container-low overflow-hidden mb-2.5">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Charcoal matte wireless noise cancelling headphones sitting gracefully on a smooth cream pedestal, captured in high-key professional studio lighting with rich details and subtle warm orange reflections." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOFQD4ufnugZFvR-7QpbHdus7ZBenFeKNfK6pOlkk-se5h2W5ih3hPxSAhg2sZxy7H-ewuQ9p9YX8K8hwczpzKuOCWTYWiKzqwpcDmI77kOrR_kr__rQVaI2JigCnTLgBXiBVBlOdWGuGwEobqIMhNzPKCdREOeCurpFdxRgkGRhV8zq_Mh88mmanRP3uy_OYCh945YG8fTVpWYGUHBkQojrw3hwltPuduapywX6qTigXRatlHL9Kl">
+<span class="absolute top-2 left-2 bg-[#151A1F] text-white font-label-sm text-[10px] px-2 py-0.5 rounded-full font-bold">
+                29% OFF
+              </span>
+<button aria-label="Add to Wishlist" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-secondary hover:text-error transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">favorite</span>
+</button>
+</div>
+<!-- Rating & Category -->
+<div class="flex items-center gap-1 text-[11px] text-secondary mb-1">
+<span class="text-tertiary-container font-bold flex items-center">
+<span class="material-symbols-outlined text-[13px] mr-0.5" style="font-variation-settings: 'FILL' 1;">star</span>
+                4.9
+              </span>
+<span class="">(1,240)</span>
+</div>
+<!-- Title -->
+<h3 class="font-label-lg text-label-md text-on-surface font-semibold line-clamp-2 leading-tight">
+              Aura Sound Pro Wireless Noise-Cancelling Headphones
+            </h3>
+</div>
+<!-- Price & Quick Add -->
+<div class="mt-3 pt-2 border-t border-surface-container-low flex items-center justify-between">
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface">₹8,499</div>
+<div class="font-body-sm text-[11px] text-secondary line-through">₹11,999</div>
+</div>
+<button aria-label="Quick Add to Cart" class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center shadow-sm hover:brightness-110 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+<!-- Product 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-3 border border-surface-container card-shadow flex flex-col justify-between group">
+<div>
+<div class="relative w-full aspect-square rounded-lg bg-surface-container-low overflow-hidden mb-2.5">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="A minimalist sand-glazed ceramic pour over coffee dripper resting atop a heat-resistant glass jug on a light warm wood countertop with clean morning lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDDjOU-VN7kzLQIw-kaxxcp7Kwp0N-r2ni9xhuHVQCkvvgftXQfZSBbB6zgVrPc5d2XDUSsfUoZ9-4aa8LVMyuiQaUScaHb7GAVwS7ZLNY0Q6EgeAyVZaNejEkjaMG6pCwGu6wC7myGQY7jTJg5aimKRL442ALgEFS4PFOJi1mn-_bQjqm6bSfseM-lxKIoA7lN3l367wguSJ9VGt0B9EDM5c7aGSO6fqNMuQf6P1OUQDW9c-LK_Br">
+<span class="absolute top-2 left-2 bg-primary-container text-white font-label-sm text-[10px] px-2 py-0.5 rounded-full font-bold">
+                HOT
+              </span>
+<button aria-label="Add to Wishlist" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-secondary hover:text-error transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">favorite</span>
+</button>
+</div>
+<div class="flex items-center gap-1 text-[11px] text-secondary mb-1">
+<span class="text-tertiary-container font-bold flex items-center">
+<span class="material-symbols-outlined text-[13px] mr-0.5" style="font-variation-settings: 'FILL' 1;">star</span>
+                4.8
+              </span>
+<span class="">(420)</span>
+</div>
+<h3 class="font-label-lg text-label-md text-on-surface font-semibold line-clamp-2 leading-tight">
+              Nordic Minimalist Ceramic Pour-Over Dripper
+            </h3>
+</div>
+<div class="mt-3 pt-2 border-t border-surface-container-low flex items-center justify-between">
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface">₹1,899</div>
+<div class="font-body-sm text-[11px] text-secondary line-through">₹2,499</div>
+</div>
+<button aria-label="Quick Add to Cart" class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center shadow-sm hover:brightness-110 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-3 border border-surface-container card-shadow flex flex-col justify-between group">
+<div>
+<div class="relative w-full aspect-square rounded-lg bg-surface-container-low overflow-hidden mb-2.5">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="An architectural ergonomic desk chair upholstered in warm stone grey textured weave with fluid aluminum accents in a bright designer home office setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9EUhjJE2aas7yXzLgUA-BItEU7tQfLVoR5u1EnpzuMT5GHD4dRHxcwMmwJOleMTgAei400Z72hYaO__yEynX5RYzLXJkWB390WbTtrH6TRtrVwWo1DkFymrOQeZ-ztlPmF1CrsG438QRLWA69xwYT7ztOUmZ1nqEYZqxm_UDmZweDMzL9pJ7Fkho_GQmPI5WVdl4YhktWzX5hzrQpm4X6mo5VaDI0lsTS5cLoiLJVMpejwqMeaNm-">
+<span class="absolute top-2 left-2 bg-[#151A1F] text-white font-label-sm text-[10px] px-2 py-0.5 rounded-full font-bold">
+                POPULAR
+              </span>
+<button aria-label="Add to Wishlist" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-secondary hover:text-error transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">favorite</span>
+</button>
+</div>
+<div class="flex items-center gap-1 text-[11px] text-secondary mb-1">
+<span class="text-tertiary-container font-bold flex items-center">
+<span class="material-symbols-outlined text-[13px] mr-0.5" style="font-variation-settings: 'FILL' 1;">star</span>
+                4.9
+              </span>
+<span class="">(880)</span>
+</div>
+<h3 class="font-label-lg text-label-md text-on-surface font-semibold line-clamp-2 leading-tight">
+              Lumbar Ergonomic Sculpt Desk Chair
+            </h3>
+</div>
+<div class="mt-3 pt-2 border-t border-surface-container-low flex items-center justify-between">
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface">₹14,299</div>
+<div class="font-body-sm text-[11px] text-secondary line-through">₹18,999</div>
+</div>
+<button aria-label="Quick Add to Cart" class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center shadow-sm hover:brightness-110 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+<!-- Product 4 -->
+<div class="bg-surface-container-lowest rounded-xl p-3 border border-surface-container card-shadow flex flex-col justify-between group">
+<div>
+<div class="relative w-full aspect-square rounded-lg bg-surface-container-low overflow-hidden mb-2.5">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="An elegant 3-in-1 magnetic wireless charging dock crafted from solid walnut wood and bead-blasted aluminum sitting on a minimalist nightstand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxpn9lm0Eb2Yr6kUuGX85Q4lH9bY_wK7xFLwVSTr7OBSZ-AzrmbwweLE6VfjjdJ0EYGF_ZEJvbw5WwVphempM60pPJfPEloiiO8T3YXsMKG-EeiiH3-pW6hpph4eroclU1op6EiEq3QdmOZG6CmgQhVJDo2iZlx9ub-nT_o9GviI6djal-VDPFvhado8oLYsnqISb6yTNSHXDNkTlg9THoaPsq80QkoQW-5R5KIxadCqOSsTCx14wX">
+<span class="absolute top-2 left-2 bg-primary-container text-white font-label-sm text-[10px] px-2 py-0.5 rounded-full font-bold">
+                21% OFF
+              </span>
+<button aria-label="Add to Wishlist" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-secondary hover:text-error transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">favorite</span>
+</button>
+</div>
+<div class="flex items-center gap-1 text-[11px] text-secondary mb-1">
+<span class="text-tertiary-container font-bold flex items-center">
+<span class="material-symbols-outlined text-[13px] mr-0.5" style="font-variation-settings: 'FILL' 1;">star</span>
+                4.7
+              </span>
+<span class="">(310)</span>
+</div>
+<h3 class="font-label-lg text-label-md text-on-surface font-semibold line-clamp-2 leading-tight">
+              Orbit MagSafe Wireless Charging Dock
+            </h3>
+</div>
+<div class="mt-3 pt-2 border-t border-surface-container-low flex items-center justify-between">
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface">₹3,299</div>
+<div class="font-body-sm text-[11px] text-secondary line-through">₹4,199</div>
+</div>
+<button aria-label="Quick Add to Cart" class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center shadow-sm hover:brightness-110 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- SPLIT EDITORIAL SPOTLIGHT ("Made for Modern Living") -->
+<section class="px-margin-mobile py-3">
+<div class="rounded-2xl bg-[#151A1F] text-white p-5 relative overflow-hidden card-shadow">
+<!-- Ambient Warm Light in Dark Container -->
+<div class="absolute -top-16 -right-16 w-44 h-44 bg-primary-container/20 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col gap-3">
+<div class="flex items-center gap-2">
+<span class="h-px w-6 bg-primary-container"></span>
+<span class="text-primary-container font-label-sm text-label-sm font-bold tracking-wider">EDITORIAL SPOTLIGHT</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-white font-bold leading-tight">
+            Made for Modern Living.
+          </h2>
+<p class="font-body-md text-body-md text-surface-container-high italic opacity-95">
+            "Thoughtfully selected products that bring convenience, style, and effortless function into your everyday space."
+          </p>
+<div class="rounded-xl overflow-hidden aspect-[16/10] my-2 border border-white/10">
+<img class="w-full h-full object-cover" data-alt="Editorial lifestyle photography of a contemporary apartment lounge with a low-slung sofa, linen cushions, warm amber ambient lighting, modern audio equipment, and architectural books on display." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDujo_dJb3JiudE9Uf0ZiYChKbGmFKe-FWDYoX5zb7bhHPT6jBNCo8P3q3K9Ekna8502N8JxkQgKvHfZwzSwumx19dMN8wwwucamREE4WLfxNs2lItFPS-QVJvuQQWrTOV4hDEDdFos9kBaZr67c9WlFlbNINe-4L3uuuAbSTtItts6M-fZGFyJ-OoxXyUHWke1tL7NIGPUn05gLiWobbRrzDtMiHEJWqxPEnaKKMwia97UCqe4oSUF">
+</div>
+<button class="mt-1 w-full py-3 rounded-full bg-white text-on-surface font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low active:scale-98 transition-all">
+<span class="">Explore Collection</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- TRUST & BENEFIT BADGES ROW -->
+<section class="px-margin-mobile py-4">
+<div class="bg-surface-container-low rounded-xl p-3.5 border border-surface-container grid grid-cols-2 gap-3">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary-container flex-shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">Curated Quality</div>
+<div class="font-body-sm text-[11px] text-secondary">100% verified design</div>
+</div>
+</div>
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary-container flex-shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+</div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">Fast Dispatch</div>
+<div class="font-body-sm text-[11px] text-secondary">Same day in metros</div>
+</div>
+</div>
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary-container flex-shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[18px]">autorenew</span>
+</div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">7-Day Easy Returns</div>
+<div class="font-body-sm text-[11px] text-secondary">Hassle-free doorstep</div>
+</div>
+</div>
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary-container flex-shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+</div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">Secure UPI</div>
+<div class="font-body-sm text-[11px] text-secondary">Encrypted payments</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CUSTOMER FAVORITES CAROUSEL -->
+<section class="py-3">
+<div class="px-margin-mobile flex items-center justify-between mb-3">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Customer Favorites</h2>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">Consistently rated 4.8+ by our community</p>
+</div>
+<a class="text-primary-container font-label-md text-label-md font-semibold hover:underline" href="#">See All</a>
+</div>
+<div class="flex gap-3 overflow-x-auto no-scrollbar px-margin-mobile pb-2">
+<!-- Fav Card 1 -->
+<div class="w-44 flex-shrink-0 bg-surface-container-lowest rounded-xl p-3 border border-surface-container card-shadow flex flex-col justify-between">
+<div>
+<div class="relative w-full aspect-square rounded-lg bg-surface-container-low overflow-hidden mb-2">
+<img class="w-full h-full object-cover" data-alt="A sculptural minimal ceramic aroma diffuser emitting a gentle fine mist, illuminated in warm amber tones on a neutral stone nightstand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDhN91f9LERpJhDjhNlGqYSe3cVCYq62U_MnsMQzflKZjG6Z9D3WMMQMtKESlWRcDMZLYJ1WqEcqxBJKX1ENt7zkLX3xl1nyk3fi45pdFDcYCY0iG-sHMvKbPsEaKBDur_mA6TT5RZgMvuQItFMcID-nAyJ5SphkUGW27hJFcJRSQ60Qq0GGnD_XdYK8heU_zX1W0ELPvDc1suFlE1HvWjDhYoq81gIQW00oARhj7cqKCOiiABLKi7">
+<span class="absolute top-1.5 left-1.5 bg-[#FFB52E] text-[#151A1F] font-label-sm text-[10px] px-2 py-0.5 rounded-full font-bold">
+                Bestseller
+              </span>
+</div>
+<h4 class="font-label-md text-label-md text-on-surface font-semibold line-clamp-1">Kanso Ultrasonic Diffuser</h4>
+<div class="text-[11px] text-secondary flex items-center gap-1 mt-0.5">
+<span class="text-tertiary-container font-bold flex items-center">★ 4.9</span>
+<span class="">(640 reviews)</span>
+</div>
+</div>
+<div class="mt-2 pt-2 border-t border-surface-container-low flex items-center justify-between">
+<span class="font-headline-sm text-[15px] font-bold text-on-surface">₹2,499</span>
+<button class="w-7 h-7 rounded-full bg-surface-container text-on-surface hover:bg-primary-container hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+<!-- Fav Card 2 -->
+<div class="w-44 flex-shrink-0 bg-surface-container-lowest rounded-xl p-3 border border-surface-container card-shadow flex flex-col justify-between">
+<div>
+<div class="relative w-full aspect-square rounded-lg bg-surface-container-low overflow-hidden mb-2">
+<img class="w-full h-full object-cover" data-alt="A premium double-walled matte black vacuum insulated stainless steel water bottle with natural beechwood cap against an off-white architectural background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMGBxwSzg-QrsnpTh2-tszJg_BXvO_wXRp-eMuseZzKEOQa0pkwNiZ1tbUMtpbQtYo6bxf8cHfR7PVmZRHbFrrTUqmRvsUDGrB48udYovNJKMfAiFG7Y8HiG9ua-QtIrzUivLn1tEUd8OARm2UEKiaZi9cxKci-LpibhxR_HGkBjdMJU7bNOLeEEZB4gRgRwVgRV1536bBavcSSrCxy2g5hMq51ECIKK3fcJxMaeXMJ0jyUtl8Tiwy">
+<span class="absolute top-1.5 left-1.5 bg-[#FFB52E] text-[#151A1F] font-label-sm text-[10px] px-2 py-0.5 rounded-full font-bold">
+                Bestseller
+              </span>
+</div>
+<h4 class="font-label-md text-label-md text-on-surface font-semibold line-clamp-1">Thermal Vessel 750ml</h4>
+<div class="text-[11px] text-secondary flex items-center gap-1 mt-0.5">
+<span class="text-tertiary-container font-bold flex items-center">★ 4.8</span>
+<span class="">(912 reviews)</span>
+</div>
+</div>
+<div class="mt-2 pt-2 border-t border-surface-container-low flex items-center justify-between">
+<span class="font-headline-sm text-[15px] font-bold text-on-surface">₹1,499</span>
+<button class="w-7 h-7 rounded-full bg-surface-container text-on-surface hover:bg-primary-container hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+<!-- Fav Card 3 -->
+<div class="w-44 flex-shrink-0 bg-surface-container-lowest rounded-xl p-3 border border-surface-container card-shadow flex flex-col justify-between">
+<div>
+<div class="relative w-full aspect-square rounded-lg bg-surface-container-low overflow-hidden mb-2">
+<img class="w-full h-full object-cover" data-alt="A precision machined aluminium laptop stand with integrated cable tidy management, styled with a modern silver notebook computer on an oak desk." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhXorN28frBiifXvdv-uYBNBf8hoIF824ZV1jaSrBu6O35PDfmcZIMmt5JNM6M3S0xn8Fz0S-iDOtAAi51QvLIKigtO_aNXV6Sm0HkgWxVL8g6ORlT6LN06rlwU0MJrmowPaHNk8CiWnT2p756NV3YXApykzFHRkJ0S6xD_4Tq1NU5IUZb624kizk-bjyvFseAMfuGl_6ArVKoX52KL2eHMO_KrYLe0LSHG4yc6yVeB3GFstekU1Qg">
+<span class="absolute top-1.5 left-1.5 bg-[#FFB52E] text-[#151A1F] font-label-sm text-[10px] px-2 py-0.5 rounded-full font-bold">
+                Bestseller
+              </span>
+</div>
+<h4 class="font-label-md text-label-md text-on-surface font-semibold line-clamp-1">Apex Aluminum Riser</h4>
+<div class="text-[11px] text-secondary flex items-center gap-1 mt-0.5">
+<span class="text-tertiary-container font-bold flex items-center">★ 4.9</span>
+<span class="">(520 reviews)</span>
+</div>
+</div>
+<div class="mt-2 pt-2 border-t border-surface-container-low flex items-center justify-between">
+<span class="font-headline-sm text-[15px] font-bold text-on-surface">₹2,899</span>
+<button class="w-7 h-7 rounded-full bg-surface-container text-on-surface hover:bg-primary-container hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BOTTOM NAVIGATION BAR (from Shared Components JSON: BottomNavBar) -->
+<!-- Mobile docked 5-tab bar with exact JSON strings & classes -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile py-2.5 bg-surface/90 backdrop-blur-lg shadow-lg nav-dock-shadow">
+<!-- Tab 1: Discover (ACTIVE: maps to Home screen intent) -->
+<a class="flex flex-col items-center justify-center text-primary-container font-bold relative after:w-1 after:h-1 after:bg-primary-container after:rounded-full after:mt-1 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="text-label-sm font-label-sm mt-0.5">Discover</span>
+</a>
+<!-- Tab 2: Categories -->
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined text-[22px]">grid_view</span>
+<span class="text-label-sm font-label-sm mt-0.5">Categories</span>
+</a>
+<!-- Tab 3: Wishlist -->
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined text-[22px]">favorite</span>
+<span class="text-label-sm font-label-sm mt-0.5">Wishlist</span>
+</a>
+<!-- Tab 4: Cart (with badge '3') -->
+<a class="relative flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors duration-150 active:scale-90" href="#">
+<div class="relative">
+<span class="material-symbols-outlined text-[22px]">shopping_bag</span>
+<span class="absolute -top-1 -right-2 bg-primary-container text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">3</span>
+</div>
+<span class="text-label-sm font-label-sm mt-0.5">Cart</span>
+</a>
+<!-- Tab 5: Account -->
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined text-[22px]">person</span>
+<span class="text-label-sm font-label-sm mt-0.5">Account</span>
+</a>
+</nav>
+
+
+</body></html>
