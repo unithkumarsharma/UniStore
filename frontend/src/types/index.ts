@@ -7,7 +7,8 @@ export interface User {
   phone?: string;
   role: UserRole;
   avatar_url?: string;
-  created_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Category {

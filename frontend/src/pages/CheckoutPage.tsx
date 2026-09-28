@@ -85,6 +85,29 @@ export const CheckoutPage: React.FC = () => {
         }
       }
 
+      // Persist order in Supabase Cloud & Firestore backup
+      await api.createOrder({
+        id: orderNumber,
+        order_number: orderNumber,
+        items: cart.items.map((it) => ({
+          product_id: it.product_id,
+          variant_id: it.variant_id || null,
+          product_name: it.product.name,
+          price: it.price,
+          quantity: it.quantity,
+          total: it.total,
+          image_url: it.product.images[0]?.image_url,
+        })),
+        subtotal: cart.subtotal,
+        discount_amount: cart.discount_amount,
+        shipping_fee: cart.shipping_fee,
+        tax_amount: cart.tax_amount,
+        total_amount: cart.total_amount,
+        shipping_address: address,
+        payment_method: paymentMethod,
+        payment_status: paymentMethod === 'RAZORPAY' ? 'PAID' : 'PENDING',
+      });
+
       clearCart();
       navigate(`/orders/${orderNumber}/confirmation`, {
         state: {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
-import { api, API_BASE_URL } from '../services/api';
+import { api } from '../services/api';
 import { useRealtimeSync } from '../hooks/useRealtimeSync';
 import { formatCurrency } from '../utils/currency';
 import type { Product, Category } from '../types';
@@ -65,12 +65,9 @@ export const AdminDashboardPage: React.FC = () => {
         setNewProdCategory(cats[0].id);
       }
 
-      // Fetch live orders
-      const ordersRes = await fetch(`${API_BASE_URL}/orders`);
-      if (ordersRes.ok) {
-        const oData = await ordersRes.json();
-        setOrdersList(oData.orders || []);
-      }
+      // Fetch live orders via unified api
+      const oData = await api.getOrders();
+      setOrdersList(oData.orders || []);
 
       // Fetch metrics if token present
       const token = localStorage.getItem('unistore_token');
