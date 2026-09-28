@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import type { Product, Category, User } from '../types';
+import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/mockProducts';
 
 export const getApiBaseUrl = (): string => {
   const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
@@ -46,14 +47,18 @@ export const api = {
    * Synchronous cached products for immediate 0ms UI render
    */
   getCachedProducts(): Product[] {
-    return getLocalCache<Product[]>('catalog_products') || [];
+    const cached = getLocalCache<Product[]>('catalog_products');
+    if (cached && cached.length > 0) return cached;
+    return INITIAL_PRODUCTS;
   },
 
   /**
    * Synchronous cached categories for immediate 0ms UI render
    */
   getCachedCategories(): Category[] {
-    return getLocalCache<Category[]>('catalog_categories') || [];
+    const cached = getLocalCache<Category[]>('catalog_categories');
+    if (cached && cached.length > 0) return cached;
+    return INITIAL_CATEGORIES;
   },
 
   /**
@@ -68,59 +73,94 @@ export const api = {
 
     const isDefaultCatalog = !params?.category && !params?.search && !params?.sort && !params?.max_price;
 
-    const res = await fetch(`${API_BASE_URL}/products?${query.toString()}`);
-    if (!res.ok) {
-      // Fallback to cache if network fails
-      if (isDefaultCatalog) {
-        const cached = getLocalCache<Product[]>('catalog_products');
-        if (cached) return cached;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await fetch(`${API_BASE_URL}/products?${query.toString()}`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        const prods = data.products || [];
+        if (prods.length > 0) {
+          if (isDefaultCatalog) {
+            setLocalCache('catalog_products', prods);
+          }
+          return prods;
+        }
       }
-      throw new Error(`Failed to fetch products: ${res.statusText}`);
+    } catch {
+      // Backend offline or unreachable, fall back to rich catalog
     }
-    const data = await res.json();
-    const prods = data.products || [];
-    if (isDefaultCatalog && prods.length > 0) {
-      setLocalCache('catalog_products', prods);
+
+    let list = getLocalCache<Product[]>('catalog_products') || INITIAL_PRODUCTS;
+    if (params?.category) {
+      list = list.filter((p) => p.category_slug === params.category || p.category_id === params.category);
     }
-    return prods;
+    if (params?.search) {
+      const q = params.search.toLowerCase();
+      list = list.filter((p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
+    }
+    if (params?.max_price) {
+      list = list.filter((p) => p.base_price <= params.max_price!);
+    }
+    if (params?.sort) {
+      if (params.sort === 'price_asc') {
+        list = [...list].sort((a, b) => a.base_price - b.base_price);
+      } else if (params.sort === 'price_desc') {
+        list = [...list].sort((a, b) => b.base_price - a.base_price);
+      } else if (params.sort === 'rating') {
+        list = [...list].sort((a, b) => b.rating - a.rating);
+      } else if (params.sort === 'bestseller') {
+        list = [...list].sort((a, b) => (b.is_bestseller ? 1 : 0) - (a.is_bestseller ? 1 : 0));
+      }
+    }
+    return list;
   },
 
   /**
    * Fetch product by slug
    */
   async getProductBySlug(slug: string): Promise<Product | undefined> {
-    // Check cached catalog first
-    const cachedProds = getLocalCache<Product[]>('catalog_products');
-    if (cachedProds) {
-      const found = cachedProds.find((p) => p.slug === slug);
-      if (found) return found;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await fetch(`${API_BASE_URL}/products/${slug}`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.product) return data.product;
+      }
+    } catch {
+      // Fallback
     }
 
-    const res = await fetch(`${API_BASE_URL}/products/${slug}`);
-    if (!res.ok) {
-      if (res.status === 404) return undefined;
-      throw new Error(`Failed to fetch product: ${res.statusText}`);
-    }
-    const data = await res.json();
-    return data.product;
+    const list = getLocalCache<Product[]>('catalog_products') || INITIAL_PRODUCTS;
+    return list.find((p) => p.slug === slug || p.id === slug);
   },
 
   /**
    * Fetch categories with SWR caching
    */
   async getCategories(): Promise<Category[]> {
-    const res = await fetch(`${API_BASE_URL}/categories`);
-    if (!res.ok) {
-      const cached = getLocalCache<Category[]>('catalog_categories');
-      if (cached) return cached;
-      throw new Error(`Failed to fetch categories: ${res.statusText}`);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await fetch(`${API_BASE_URL}/categories`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        const cats = data.categories || [];
+        if (cats.length > 0) {
+          setLocalCache('catalog_categories', cats);
+          return cats;
+        }
+      }
+    } catch {
+      // Fallback
     }
-    const data = await res.json();
-    const cats = data.categories || [];
-    if (cats.length > 0) {
-      setLocalCache('catalog_categories', cats);
-    }
-    return cats;
+
+    return getLocalCache<Category[]>('catalog_categories') || INITIAL_CATEGORIES;
   },
 
   /**
