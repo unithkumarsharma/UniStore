@@ -37,16 +37,30 @@ export const OrderConfirmationPage: React.FC = () => {
           </p>
 
           {/* Quick Metrics Bar */}
-          <div className="bg-zinc-50 rounded-2xl p-4 sm:p-5 border border-zinc-200/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs mb-8 text-left">
+          <div className="bg-zinc-50 rounded-2xl p-4 sm:p-5 border border-zinc-200/70 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs mb-6 text-left">
             <div>
               <span className="text-zinc-400 block text-[10px] uppercase tracking-wider font-semibold">Order Identifier</span>
               <span className="font-extrabold text-sm text-zinc-950 font-mono">{displayOrderId}</span>
             </div>
-            <div className="sm:border-l sm:border-zinc-200 sm:pl-4">
+            <div className="border-l border-zinc-200 pl-4">
+              <span className="text-zinc-400 block text-[10px] uppercase tracking-wider font-semibold">Payment Status</span>
+              {order?.razorpay_payment_id || order?.payment_method === 'RAZORPAY' ? (
+                <span className="font-bold text-emerald-700 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[15px]">verified</span>
+                  <span>Paid (Razorpay)</span>
+                </span>
+              ) : (
+                <span className="font-bold text-amber-700 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[15px]">pending</span>
+                  <span>COD (Pending)</span>
+                </span>
+              )}
+            </div>
+            <div className="border-l border-zinc-200 pl-4">
               <span className="text-zinc-400 block text-[10px] uppercase tracking-wider font-semibold">Courier Carrier</span>
               <span className="font-bold text-zinc-900">Bluedart Priority Air</span>
             </div>
-            <div className="sm:border-l sm:border-zinc-200 sm:pl-4">
+            <div className="border-l border-zinc-200 pl-4">
               <span className="text-zinc-400 block text-[10px] uppercase tracking-wider font-semibold">Est. Delivery</span>
               <span className="font-bold text-emerald-700 flex items-center gap-1">
                 <span className="material-symbols-outlined text-[16px]">bolt</span>
@@ -54,6 +68,24 @@ export const OrderConfirmationPage: React.FC = () => {
               </span>
             </div>
           </div>
+
+          {/* Official Razorpay Reference Banner */}
+          {order?.razorpay_payment_id && (
+            <div className="mb-8 p-3.5 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-left">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[16px]">check</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Official Banking Reference ID</span>
+                  <span className="text-xs font-mono font-bold text-zinc-900">{order.razorpay_payment_id}</span>
+                </div>
+              </div>
+              <span className="text-[11px] font-semibold text-emerald-700 bg-white px-2.5 py-1 rounded-full border border-emerald-200 shadow-2xs">
+                Verified by Razorpay Standard Gateway
+              </span>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">

@@ -46,6 +46,13 @@ def create_app(config_class=Config):
     app.register_blueprint(backup_bp)
     app.register_blueprint(upload_bp)
 
+    # Top-level Razorpay Standard & Custom Checkout endpoints
+    from app.payments.routes import create_razorpay_order, verify_payment, check_order_status, razorpay_webhook
+    app.add_url_rule('/api/create-order', 'api_create_order', create_razorpay_order, methods=['POST'])
+    app.add_url_rule('/api/verify-payment', 'api_verify_payment', verify_payment, methods=['POST'])
+    app.add_url_rule('/api/check-payment-status', 'api_check_payment_status', check_order_status, methods=['POST'])
+    app.add_url_rule('/api/webhook', 'api_webhook', razorpay_webhook, methods=['POST'])
+
     @app.route('/api/health', methods=['GET'])
     def health_check():
         return jsonify({

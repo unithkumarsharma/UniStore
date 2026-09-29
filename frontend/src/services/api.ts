@@ -570,55 +570,138 @@ export const api = {
   },
 
   /**
-   * Create Razorpay order (local backend or cloud simulation)
+   * Create Razorpay order via backend
    */
-  async createRazorpayOrder(amount: number, orderId?: string) {
-    if (isLocalApi()) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/payments/razorpay/create-order`, {
+  async createRazorpayOrder(amountInPaise: number, orderId?: string): Promise<{
+    order_id: string;
+    razorpay_order_id: string;
+    amount: number;
+    currency: string;
+    key_id?: string;
+  }> {
+    let endpoint = `${API_BASE_URL}/create-order`;
+    let res: Response;
+    try {
+      res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amountInPaise,
+          currency: 'INR',
+          receipt: orderId,
+          order_id: orderId,
+        }),
+      });
+      if (res.status === 404) {
+        // Fallback to blueprint prefix if top-level is not mounted
+        endpoint = `${API_BASE_URL}/payments/razorpay/create-order`;
+        res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount, order_id: orderId }),
+          body: JSON.stringify({
+            amount: amountInPaise,
+            currency: 'INR',
+            receipt: orderId,
+            order_id: orderId,
+          }),
         });
-        if (res.ok) return res.json();
-      } catch {}
+      }
+    } catch {
+      throw new Error(`Cannot connect to payment server at ${API_BASE_URL}. Please ensure backend is running.`);
+    }
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || `Failed to create order on payment gateway (HTTP ${res.status})`);
     }
 
     return {
-      razorpay_order_id: `order_rzp_${Math.floor(10000000 + Math.random() * 90000000)}`,
-      amount,
-      currency: 'INR',
-      status: 'created',
-      key: 'rzp_test_unistore_2026',
+      order_id: data.order_id || data.razorpay_order_id,
+      razorpay_order_id: data.razorpay_order_id || data.order_id,
+      amount: data.amount,
+      currency: data.currency || 'INR',
+      key_id: data.key_id || (import.meta.env.VITE_RAZORPAY_KEY_ID as string),
     };
   },
 
   /**
-   * Verify Razorpay payment signature
+   * Cryptographically verify Razorpay payment signature
    */
   async verifyPayment(params: {
     razorpay_order_id: string;
     razorpay_payment_id: string;
     razorpay_signature: string;
     order_id?: string;
-  }) {
-    if (isLocalApi()) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/payments/razorpay/verify`, {
+  }): Promise<{
+    success: boolean;
+    verified: boolean;
+    message?: string;
+    razorpay_payment_id?: string;
+    error?: string;
+  }> {
+    let endpoint = `${API_BASE_URL}/verify-payment`;
+    let res: Response;
+    try {
+      res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      if (res.status === 404) {
+        endpoint = `${API_BASE_URL}/payments/razorpay/verify-payment`;
+        res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(params),
         });
-        if (res.ok) return res.json();
-      } catch {}
+      }
+    } catch {
+      throw new Error(`Cannot connect to payment server at ${API_BASE_URL}. Please ensure backend is running.`);
+    }
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || 'Payment signature verification failed');
     }
 
     return {
+      success: true,
       verified: true,
-      order_id: params.order_id,
-      razorpay_payment_id: params.razorpay_payment_id,
-      message: 'Payment verified successfully',
+      message: data.message || 'Payment verified successfully',
+      razorpay_payment_id: data.razorpay_payment_id,
     };
+  },
+
+  /**
+   * Check real-time payment status from server (e.g. for dynamic QR code scan-and-pay)
+   */
+  async checkPaymentStatus(params: { razorpay_order_id: string; store_order_id?: string }): Promise<{
+    paid: boolean;
+    status: string;
+    payment_id?: string;
+    amount?: number;
+    order_status?: string;
+  }> {
+    let endpoint = `${API_BASE_URL}/check-payment-status`;
+    let res: Response;
+    try {
+      res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      if (res.status === 404) {
+        endpoint = `${API_BASE_URL}/payments/razorpay/check-status`;
+        res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params),
+        });
+      }
+      return await res.json();
+    } catch {
+      return { paid: false, status: 'pending' };
+    }
   },
 
   /**
