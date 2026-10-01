@@ -9,11 +9,22 @@ orders_bp = Blueprint('orders', __name__, url_prefix='/api/orders')
 def get_orders():
     try:
         user_id = request.args.get('user_id')
-        query = Order.query
-        if user_id:
-            query = query.filter_by(user_id=user_id)
-        orders = query.order_by(Order.created_at.desc()).all()
-        return jsonify({'orders': [o.to_dict() for o in orders]}), 200
+        try:
+            query = Order.query
+            if user_id:
+                query = query.filter_by(user_id=user_id)
+            orders = query.order_by(Order.created_at.desc()).all()
+            return jsonify({'orders': [o.to_dict() for o in orders]}), 200
+        except Exception as sql_err:
+            from app.supabase_client import get_supabase
+            sp = get_supabase()
+            if sp:
+                query = sp.table('orders').select('*').order('created_at', desc=True)
+                if user_id:
+                    query = query.eq('user_id', user_id)
+                res = query.execute()
+                return jsonify({'orders': res.data or []}), 200
+            raise sql_err
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -73,8 +84,9 @@ def create_order():
 
         shipping_fee = 0.0 if (subtotal - discount_amount) >= 999.0 else 99.0
         taxable_subtotal = max(0.0, subtotal - discount_amount)
-        tax_amount = round(taxable_subtotal * 0.18, 2)
-        total_amount = round(taxable_subtotal + shipping_fee + tax_amount, 2)
+        # Indian retail MRP standard: prices are inclusive of 18% GST
+        tax_amount = round(taxable_subtotal * (0.18 / 1.18), 2)
+        total_amount = round(taxable_subtotal + shipping_fee, 2)
 
         new_order = Order(
             order_number=order_number,

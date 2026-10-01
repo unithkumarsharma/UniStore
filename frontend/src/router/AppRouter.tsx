@@ -36,6 +36,8 @@ export const AppRouter: React.FC = () => {
           <Route path="products/:slug" element={<ProductDetailPage />} />
           <Route path="wishlist" element={<WishlistPage />} />
           <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="orders" element={<AccountPage />} />
+          <Route path="orders/:orderId" element={<OrderTrackingPage />} />
           <Route path="orders/:orderId/confirmation" element={<OrderConfirmationPage />} />
           <Route path="orders/:orderId/track" element={<OrderTrackingPage />} />
           <Route path="orders/track" element={<OrderTrackingPage />} />
