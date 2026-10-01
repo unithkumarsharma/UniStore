@@ -5,8 +5,10 @@ import { api } from '../services/api';
 import { useRealtimeSync } from '../hooks/useRealtimeSync';
 import { formatCurrency } from '../utils/currency';
 import type { Product, Category } from '../types';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export const AdminDashboardPage: React.FC = () => {
+  useDocumentTitle('UniStore Executive Management Portal');
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
 

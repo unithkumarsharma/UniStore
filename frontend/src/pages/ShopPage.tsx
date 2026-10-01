@@ -80,13 +80,20 @@ export const ShopPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
   const sortParam = searchParams.get('sort') || 'popularity';
+  const filterParam = searchParams.get('filter');
 
   const [products, setProducts] = useState<Product[]>(() => api.getCachedProducts());
   const [categories, setCategories] = useState<Category[]>(() => api.getCachedCategories());
   const [isLoading, setIsLoading] = useState<boolean>(() => api.getCachedProducts().length === 0);
 
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam || 'all');
-  useDocumentTitle(selectedCategory && selectedCategory !== 'all' ? `${selectedCategory.replace('-', ' ').toUpperCase()} Collection` : 'Shop Curated Essentials');
+  useDocumentTitle(
+    filterParam === 'bestseller'
+      ? 'Bestselling Curations — UniStore'
+      : selectedCategory && selectedCategory !== 'all'
+      ? `${selectedCategory.replace('-', ' ').toUpperCase()} Collection`
+      : 'Shop Curated Essentials'
+  );
   const [sortBy, setSortBy] = useState<string>(sortParam);
   const [priceMax, setPriceMax] = useState<number>(20000);
   const [onlyInStock, setOnlyInStock] = useState<boolean>(false);
@@ -126,6 +133,9 @@ export const ShopPage: React.FC = () => {
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
+      if (filterParam === 'bestseller' && !product.is_bestseller) {
+        return false;
+      }
       if (selectedCategory !== 'all' && product.category_slug !== selectedCategory) {
         return false;
       }
@@ -147,7 +157,7 @@ export const ShopPage: React.FC = () => {
       }
       return b.review_count - a.review_count; // Popularity default
     });
-  }, [products, selectedCategory, sortBy, priceMax, onlyInStock]);
+  }, [products, selectedCategory, sortBy, priceMax, onlyInStock, filterParam]);
 
   const activeCategoryObj = categories.find((c) => c.slug === selectedCategory);
   const heroData = selectedCategory !== 'all' && categoryHeroes[selectedCategory]

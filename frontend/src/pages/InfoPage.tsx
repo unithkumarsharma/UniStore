@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 type TabKey = 'about' | 'terms' | 'privacy' | 'shipping' | 'sustainability';
+
+const tabTitles: Record<TabKey, string> = {
+  about: 'About UniStore & Craft',
+  terms: 'Terms of Service',
+  privacy: 'Privacy & Security Policy',
+  shipping: 'Dispatch & Returns Policy',
+  sustainability: 'Sustainability & Environmental Impact',
+};
 
 export const InfoPage: React.FC = () => {
   const location = useLocation();
@@ -16,6 +25,7 @@ export const InfoPage: React.FC = () => {
   };
 
   const [activeTab, setActiveTab] = useState<TabKey>(getInitialTab);
+  useDocumentTitle(tabTitles[activeTab] || 'Information & Policies');
 
   useEffect(() => {
     setActiveTab(getInitialTab());

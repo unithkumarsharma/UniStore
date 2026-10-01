@@ -3,11 +3,13 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Product } from '../types';
 import { ProductCard } from '../components/product/ProductCard';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
   const [query, setQuery] = useState(initialQuery);
+  useDocumentTitle(query ? `Search: "${query}"` : 'Search Essentials');
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');

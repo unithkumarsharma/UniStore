@@ -20,11 +20,20 @@ export const ScrollToTop = () => {
     // 2. If an anchor hash exists (e.g. /#faq), scroll smoothly to that target
     if (hash) {
       const targetId = hash.replace('#', '');
-      const targetElement = document.getElementById(targetId);
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth' });
-        return;
+      const scrollTarget = () => {
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth' });
+          return true;
+        }
+        return false;
+      };
+
+      if (!scrollTarget()) {
+        const hashTimer = setTimeout(scrollTarget, 120);
+        return () => clearTimeout(hashTimer);
       }
+      return;
     }
 
     // 3. Immediately scroll to the top of the viewport
