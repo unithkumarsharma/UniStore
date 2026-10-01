@@ -34,6 +34,13 @@ export const SearchPage: React.FC = () => {
     fetchResults();
   }, [query]);
 
+  // Focus input automatically only on desktop devices to prevent mobile viewport shrinkage and scroll jumps
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      inputRef.current?.focus();
+    }
+  }, []);
+
   const popularKeywords = ['Headphones', 'Coffee', 'Diffuser', 'Desk Chair', 'Wireless', 'Backpack', 'Speaker', 'Lamp'];
 
   const handleKeywordClick = (kw: string) => {
@@ -78,7 +85,6 @@ export const SearchPage: React.FC = () => {
                 }}
                 placeholder="Search products, categories, brands..."
                 className="w-full bg-transparent border-0 p-0 text-zinc-900 text-base sm:text-lg font-medium placeholder:text-zinc-400 focus:ring-0 focus:outline-none"
-                autoFocus
               />
               {query && (
                 <button

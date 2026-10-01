@@ -14,6 +14,7 @@ const OrderConfirmationPage = lazy(() => import('../pages/OrderConfirmationPage'
 const OrderTrackingPage = lazy(() => import('../pages/OrderTrackingPage').then((m) => ({ default: m.OrderTrackingPage })));
 const AccountPage = lazy(() => import('../pages/AccountPage').then((m) => ({ default: m.AccountPage })));
 const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })));
+const InfoPage = lazy(() => import('../pages/InfoPage').then((m) => ({ default: m.InfoPage })));
 
 const RouteLoading: React.FC = () => (
   <div className="min-h-[50vh] flex flex-col items-center justify-center text-secondary">
@@ -41,6 +42,17 @@ export const AppRouter: React.FC = () => {
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<LoginPage />} />
           <Route path="admin/*" element={<AdminDashboardPage />} />
+          <Route path="about" element={<InfoPage />} />
+          <Route path="story" element={<InfoPage />} />
+          <Route path="terms" element={<InfoPage />} />
+          <Route path="privacy" element={<InfoPage />} />
+          <Route path="careers" element={<InfoPage />} />
+          <Route path="press" element={<InfoPage />} />
+          <Route path="sustainability" element={<InfoPage />} />
+          <Route path="cookies" element={<InfoPage />} />
+          <Route path="sitemap" element={<InfoPage />} />
+          <Route path="shipping" element={<InfoPage />} />
+          <Route path="returns" element={<InfoPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

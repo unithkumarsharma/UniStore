@@ -14,8 +14,9 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Programmatic route navigation must be instant; in-page anchors handle smooth scrolling explicitly */
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
   }
 
   html, body {

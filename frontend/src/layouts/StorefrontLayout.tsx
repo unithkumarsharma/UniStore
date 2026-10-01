@@ -4,6 +4,7 @@ import { Header } from '../components/layout/Header';
 import { MobileNavDock } from '../components/layout/MobileNavDock';
 import { Footer } from '../components/layout/Footer';
 import { CartDrawer } from '../components/cart/CartDrawer';
+import { BackToTop } from '../components/common/BackToTop';
 
 import { useCapacitorApp } from '../hooks/useCapacitorApp';
 
@@ -19,6 +20,7 @@ export const StorefrontLayout: React.FC = () => {
       <Footer />
       <MobileNavDock />
       <CartDrawer />
+      <BackToTop />
     </div>
   );
 };

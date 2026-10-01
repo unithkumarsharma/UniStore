@@ -67,6 +67,40 @@ export const AccountPage: React.FC = () => {
     navigate('/');
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-zinc-50/50 py-12 sm:py-20 flex items-center justify-center">
+        <div className="max-w-md w-full mx-auto px-4 text-center animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-16 h-16 rounded-3xl bg-zinc-950 text-white flex items-center justify-center mx-auto mb-5 shadow-lg">
+            <span className="material-symbols-outlined text-[32px]">account_circle</span>
+          </div>
+          <h1 className="text-2xl font-black text-zinc-950 tracking-tight mb-2">
+            Welcome to UniStore
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed mb-8 max-w-sm mx-auto">
+            Sign in to check live order dispatches, manage saved delivery addresses, and enjoy verified member guarantees.
+          </p>
+          <div className="space-y-3">
+            <Link
+              to="/login?redirect=/account"
+              className="w-full py-3.5 px-6 rounded-2xl bg-zinc-950 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:bg-zinc-800 active:scale-95 transition-all"
+            >
+              <span className="material-symbols-outlined text-[18px]">login</span>
+              <span>Sign In / Create Account</span>
+            </Link>
+            <Link
+              to="/orders/track"
+              className="w-full py-3.5 px-6 rounded-2xl bg-white border border-zinc-200 text-zinc-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:bg-zinc-50 active:scale-95 transition-all shadow-xs"
+            >
+              <span className="material-symbols-outlined text-[18px]">local_shipping</span>
+              <span>Track an Order with AWB</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50/50 py-6 sm:py-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
