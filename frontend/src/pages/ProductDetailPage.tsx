@@ -7,6 +7,7 @@ import { formatCurrency, calculateDiscount } from '../utils/currency';
 import { useCart } from '../store/CartContext';
 import { useWishlist } from '../store/WishlistContext';
 import { ProductCard } from '../components/product/ProductCard';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // ── Deterministic Color Swatches ────────────────────────────────────────────
 const getSwatches = (categorySlug?: string, name?: string) => {
@@ -52,7 +53,14 @@ const ZoomableImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => 
       onMouseLeave={() => setIsZoomed(false)}
       onMouseMove={handleMouseMove}
     >
-      <img src={src} alt={alt} className="w-full h-full object-cover" />
+      <img
+        src={src}
+        alt={alt}
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80';
+        }}
+      />
       {isZoomed && (
         <div
           className="absolute inset-0 z-10 hidden sm:block"
@@ -76,6 +84,7 @@ export const ProductDetailPage: React.FC = () => {
   const { isInWishlist, toggleWishlist } = useWishlist();
 
   const [product, setProduct] = useState<Product | null>(null);
+  useDocumentTitle(product ? `${product.name} — ₹${product.base_price}` : 'Product Details');
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 

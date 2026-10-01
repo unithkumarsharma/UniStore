@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useParams, Link } from 'react-router-dom';
 import { formatCurrency } from '../utils/currency';
 import { api } from '../services/api';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export const OrderConfirmationPage: React.FC = () => {
+  useDocumentTitle('Order Confirmed');
   const { orderId } = useParams<{ orderId: string }>();
   const location = useLocation();
   const [order, setOrder] = useState<any>(location.state?.order || null);

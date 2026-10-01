@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export const OrderTrackingPage: React.FC = () => {
+  useDocumentTitle('Live Order Tracking');
   const { orderId } = useParams<{ orderId: string }>();
   const [inputOrderId, setInputOrderId] = useState(orderId || 'UNI-839210');
   const [currentTrackingId, setCurrentTrackingId] = useState(orderId || 'UNI-839210');

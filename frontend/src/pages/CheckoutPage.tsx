@@ -5,8 +5,10 @@ import { useAuth } from '../store/AuthContext';
 import { formatCurrency } from '../utils/currency';
 import { api } from '../services/api';
 import type { Address } from '../types';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export const CheckoutPage: React.FC = () => {
+  useDocumentTitle('Secure Checkout');
   const navigate = useNavigate();
   const { cart, clearCart, applyCoupon, removeCoupon } = useCart();
   const { user } = useAuth();

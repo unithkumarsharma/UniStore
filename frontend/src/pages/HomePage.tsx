@@ -13,8 +13,10 @@ import { api } from '../services/api';
 import { useAuth } from '../store/AuthContext';
 import { useRealtimeSync } from '../hooks/useRealtimeSync';
 import type { Product, Category } from '../types';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export const HomePage: React.FC = () => {
+  useDocumentTitle('UniStore — Discover More. Live Better.');
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchVal, setSearchVal] = useState('');

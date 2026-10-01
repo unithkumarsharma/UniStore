@@ -6,8 +6,10 @@ import { api } from '../services/api';
 import type { Product } from '../types';
 import { ProductCard } from '../components/product/ProductCard';
 import { formatCurrency } from '../utils/currency';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export const WishlistPage: React.FC = () => {
+  useDocumentTitle('Your Curated Wishlist');
   const { wishlist, toggleWishlist } = useWishlist();
   const { addToCart, setIsCartOpen } = useCart();
   const [products, setProducts] = useState<Product[]>([]);

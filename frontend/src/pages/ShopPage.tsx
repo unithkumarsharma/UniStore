@@ -4,6 +4,7 @@ import { ProductCard } from '../components/product/ProductCard';
 import { api } from '../services/api';
 import { useRealtimeSync } from '../hooks/useRealtimeSync';
 import type { Product, Category } from '../types';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // ── Editorial category imagery & copy ───────────────────────────────────────
 const categoryHeroes: Record<string, { headline: string; sub: string; img: string; accent: string }> = {
@@ -85,6 +86,7 @@ export const ShopPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(() => api.getCachedProducts().length === 0);
 
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam || 'all');
+  useDocumentTitle(selectedCategory && selectedCategory !== 'all' ? `${selectedCategory.replace('-', ' ').toUpperCase()} Collection` : 'Shop Curated Essentials');
   const [sortBy, setSortBy] = useState<string>(sortParam);
   const [priceMax, setPriceMax] = useState<number>(20000);
   const [onlyInStock, setOnlyInStock] = useState<boolean>(false);

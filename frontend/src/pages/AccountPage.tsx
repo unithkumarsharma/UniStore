@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import { api } from '../services/api';
 import { formatCurrency } from '../utils/currency';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface UserOrder {
   id: string;
@@ -20,6 +21,7 @@ interface UserOrder {
 }
 
 export const AccountPage: React.FC = () => {
+  useDocumentTitle('My Account');
   const navigate = useNavigate();
   const { user, logout, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'profile' | 'perks'>('orders');

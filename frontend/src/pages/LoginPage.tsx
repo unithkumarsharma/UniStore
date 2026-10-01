@@ -13,8 +13,10 @@ import {
 } from '../services/firebase';
 import { api } from '../services/api';
 import logoImg from '../assets/logo.png';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export const LoginPage: React.FC = () => {
+  useDocumentTitle('Sign In / Register');
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
