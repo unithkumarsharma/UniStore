@@ -73,7 +73,7 @@ def add_product():
     try:
         data = request.get_json() or {}
         name = data.get('name', '').strip()
-        price = data.get('base_price')
+        price = data.get('base_price') if data.get('base_price') is not None else data.get('price')
 
         if not name or price is None:
             return jsonify({'error': 'Product name and base price are required'}), 400
@@ -81,53 +81,109 @@ def add_product():
         slug = data.get('slug') or name.lower().replace(' ', '-')
         sku = data.get('sku') or f"UNI-{random.randint(100, 999)}"
 
-        new_product = Product(
-            name=name,
-            slug=slug,
-            description=data.get('description', 'Curated product for UniStore.'),
-            category_id=data.get('category_id'),
-            base_price=float(price),
-            compare_at_price=float(data.get('compare_at_price', price * 1.2)),
-            sku=sku,
-            stock=int(data.get('stock', 10)),
-            is_active=True,
-            is_featured=bool(data.get('is_featured', False)),
-            is_bestseller=bool(data.get('is_bestseller', False)),
-            badge=data.get('badge'),
-        )
-        db.session.add(new_product)
-        db.session.flush()
+        images_list = data.get('images', [])
+        if not images_list and data.get('image_url'):
+            images_list = [{'image_url': data.get('image_url'), 'is_primary': True, 'display_order': 1}]
 
-        for img in data.get('images', []):
-            product_img = ProductImage(
-                product_id=new_product.id,
-                image_url=img['image_url'],
-                is_primary=img.get('is_primary', False),
-                display_order=img.get('display_order', 0)
+        # 1. Try SQLAlchemy
+        try:
+            new_product = Product(
+                name=name,
+                slug=slug,
+                description=data.get('description', 'Curated product for UniStore.'),
+                category_id=data.get('category_id'),
+                base_price=float(price),
+                compare_at_price=float(data.get('compare_at_price', float(price) * 1.2)),
+                sku=sku,
+                stock=int(data.get('stock', 10)),
+                is_active=True,
+                is_featured=bool(data.get('is_featured', False)),
+                is_bestseller=bool(data.get('is_bestseller', False)),
+                badge=data.get('badge'),
             )
-            db.session.add(product_img)
+            db.session.add(new_product)
+            db.session.flush()
 
-        db.session.commit()
-        return jsonify({'product': new_product.to_dict(), 'message': 'Product created successfully'}), 201
+            for img in images_list:
+                product_img = ProductImage(
+                    product_id=new_product.id,
+                    image_url=img['image_url'],
+                    is_primary=img.get('is_primary', False),
+                    display_order=img.get('display_order', 0)
+                )
+                db.session.add(product_img)
+
+            db.session.commit()
+            return jsonify({'product': new_product.to_dict(), 'message': 'Product created successfully'}), 201
+        except Exception:
+            db.session.rollback()
+
+        # 2. Fallback to Supabase REST
+        sp = get_supabase()
+        if sp:
+            prod_row = {
+                'name': name,
+                'slug': slug,
+                'description': data.get('description', 'Curated product for UniStore.'),
+                'category_id': data.get('category_id'),
+                'base_price': float(price),
+                'compare_at_price': float(data.get('compare_at_price', float(price) * 1.2)),
+                'sku': sku,
+                'stock': int(data.get('stock', 10)),
+                'is_active': True,
+                'is_featured': bool(data.get('is_featured', False)),
+                'is_bestseller': bool(data.get('is_bestseller', False)),
+                'badge': data.get('badge'),
+            }
+            res = sp.table('products').insert(prod_row).execute()
+            if res.data and len(res.data) > 0:
+                created_p = res.data[0]
+                p_id = created_p['id']
+                for img in images_list:
+                    sp.table('product_images').insert({
+                        'product_id': p_id,
+                        'image_url': img['image_url'],
+                        'is_primary': img.get('is_primary', False),
+                        'display_order': img.get('display_order', 0)
+                    }).execute()
+                return jsonify({'product': created_p, 'message': 'Product created successfully'}), 201
+
+        return jsonify({'error': 'Failed to persist product'}), 500
     except Exception as e:
-        db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 @admin_bp.route('/products/<product_id>/toggle-status', methods=['PATCH'])
 @require_role(['ADMIN', 'SUPER_ADMIN', 'STAFF'])
 def toggle_product_status(product_id):
     try:
-        product = db.session.get(Product, product_id)
-        if not product:
-            return jsonify({'error': 'Product not found'}), 404
-        product.is_active = not product.is_active
-        db.session.commit()
-        return jsonify({
-            'product': product.to_dict(),
-            'message': f"Product is now {'ACTIVE' if product.is_active else 'INACTIVE'}"
-        }), 200
+        # 1. Try SQLAlchemy
+        try:
+            product = db.session.get(Product, product_id)
+            if product:
+                product.is_active = not product.is_active
+                db.session.commit()
+                return jsonify({
+                    'product': product.to_dict(),
+                    'message': f"Product is now {'ACTIVE' if product.is_active else 'INACTIVE'}"
+                }), 200
+        except Exception:
+            db.session.rollback()
+
+        # 2. Fallback to Supabase REST
+        sp = get_supabase()
+        if sp:
+            p_res = sp.table('products').select('*').eq('id', product_id).maybe_single().execute()
+            if p_res.data:
+                curr_status = p_res.data.get('is_active', True)
+                new_st = not curr_status
+                sp.table('products').update({'is_active': new_st}).eq('id', product_id).execute()
+                return jsonify({
+                    'product': {**p_res.data, 'is_active': new_st},
+                    'message': f"Product is now {'ACTIVE' if new_st else 'INACTIVE'}"
+                }), 200
+
+        return jsonify({'error': 'Product not found'}), 404
     except Exception as e:
-        db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 @admin_bp.route('/orders/<order_id>/status', methods=['PATCH'])
@@ -139,19 +195,33 @@ def update_order_status(order_id):
         if not new_status:
             return jsonify({'error': 'Status is required'}), 400
 
-        order = Order.query.filter(
-            (Order.order_number == order_id) | (Order.id == order_id)
-        ).first()
+        # 1. Try SQLAlchemy
+        try:
+            order = Order.query.filter(
+                (Order.order_number == order_id) | (Order.id == order_id)
+            ).first()
 
-        if not order:
-            return jsonify({'error': 'Order not found'}), 404
+            if order:
+                order.status = new_status
+                db.session.commit()
+                return jsonify({
+                    'order': order.to_dict(),
+                    'message': f"Order status updated to {new_status}"
+                }), 200
+        except Exception:
+            db.session.rollback()
 
-        order.status = new_status
-        db.session.commit()
-        return jsonify({
-            'order': order.to_dict(),
-            'message': f"Order status updated to {new_status}"
-        }), 200
+        # 2. Fallback to Supabase REST
+        sp = get_supabase()
+        if sp:
+            o_res = sp.table('orders').select('*').or_(f"id.eq.{order_id},order_number.eq.{order_id}").maybe_single().execute()
+            if o_res.data:
+                sp.table('orders').update({'status': new_status}).eq('id', o_res.data['id']).execute()
+                return jsonify({
+                    'order': {**o_res.data, 'status': new_status},
+                    'message': f"Order status updated to {new_status}"
+                }), 200
+
+        return jsonify({'error': 'Order not found'}), 404
     except Exception as e:
-        db.session.rollback()
         return jsonify({'error': str(e)}), 500

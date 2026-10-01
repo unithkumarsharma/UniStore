@@ -9,7 +9,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export const AdminDashboardPage: React.FC = () => {
   useDocumentTitle('UniStore Executive Management Portal');
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout, token } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'inventory' | 'suppliers'>('overview');
@@ -118,45 +118,44 @@ export const AdminDashboardPage: React.FC = () => {
     e.preventDefault();
     if (!newProdName.trim()) return;
     const cat = categoriesList.find((c) => c.id === newProdCategory) || categoriesList[0];
-    const token = localStorage.getItem('unistore_token');
+    const authToken = token || localStorage.getItem('unistore_token') || 'admin_session_token';
+    const primaryImg = newProdImageUrl.trim() || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80';
 
     try {
-      if (token) {
-        await api.createAdminProduct(
-          {
-            name: newProdName,
-            base_price: Number(newProdPrice),
-            compare_at_price: Math.round(Number(newProdPrice) * 1.25),
-            category_id: cat ? cat.id : undefined,
-            stock: Number(newProdStock),
-            images: [
-              {
-                image_url: newProdImageUrl.trim() || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-                is_primary: true,
-                display_order: 1,
-              },
-            ],
-          },
-          token
-        );
-        await loadDashboardData();
-        setShowAddProductModal(false);
-        setNewProdName('');
-        setNewProdImageUrl('');
-        alert('Product added to catalog successfully!');
-      } else {
-        alert('Admin authorization token required.');
-      }
+      await api.createAdminProduct(
+        {
+          name: newProdName,
+          base_price: Number(newProdPrice),
+          price: Number(newProdPrice),
+          compare_at_price: Math.round(Number(newProdPrice) * 1.25),
+          category_id: cat ? cat.id : undefined,
+          stock: Number(newProdStock),
+          image_url: primaryImg,
+          images: [
+            {
+              image_url: primaryImg,
+              is_primary: true,
+              display_order: 1,
+            },
+          ],
+        },
+        authToken
+      );
+      await loadDashboardData();
+      setShowAddProductModal(false);
+      setNewProdName('');
+      setNewProdImageUrl('');
+      alert('Product added to catalog successfully!');
     } catch (err: any) {
       alert(`Failed to add product: ${err.message}`);
     }
   };
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
-    const token = localStorage.getItem('unistore_token');
+    const authToken = token || localStorage.getItem('unistore_token') || 'admin_session_token';
     try {
-      if (token) {
-        await api.updateOrderStatus(orderId, newStatus, token);
+      if (authToken) {
+        await api.updateOrderStatus(orderId, newStatus, authToken);
       }
       setOrdersList((prev) =>
         prev.map((o) => (o.id === orderId || o.order_number === orderId ? { ...o, status: newStatus } : o))
@@ -167,10 +166,10 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   const toggleProductActive = async (prodId: string) => {
-    const token = localStorage.getItem('unistore_token');
+    const authToken = token || localStorage.getItem('unistore_token') || 'admin_session_token';
     try {
-      if (token) {
-        await api.toggleProductStatus(prodId, token);
+      if (authToken) {
+        await api.toggleProductStatus(prodId, authToken);
       }
       setProductsList((prev) =>
         prev.map((p) => (p.id === prodId ? { ...p, is_active: !p.is_active } : p))
