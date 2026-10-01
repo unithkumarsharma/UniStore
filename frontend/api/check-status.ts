@@ -40,7 +40,7 @@ export default async function handler(req: any, res: any) {
       },
     });
 
-    const data = await rzpResponse.json();
+    const data: any = await rzpResponse.json();
     if (!rzpResponse.ok) {
       return res.status(rzpResponse.status).json({ error: data?.error?.description || 'Failed to check status' });
     }

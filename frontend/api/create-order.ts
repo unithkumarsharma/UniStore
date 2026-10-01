@@ -67,7 +67,7 @@ export default async function handler(req: any, res: any) {
       }),
     });
 
-    const rzpData = await rzpResponse.json();
+    const rzpData: any = await rzpResponse.json();
 
     if (!rzpResponse.ok) {
       const errorMsg = rzpData?.error?.description || rzpData?.error?.reason || 'Failed to create order on Razorpay';
