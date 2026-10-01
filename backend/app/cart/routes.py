@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.models import Product, ProductVariant, Coupon
+from app.models import db, Product, ProductVariant, Coupon
 
 cart_bp = Blueprint('cart', __name__, url_prefix='/api/cart')
 
@@ -26,7 +26,7 @@ def validate_cart():
             variant_id = item.get('variant_id')
             qty = max(1, int(item.get('quantity', 1)))
 
-            product = Product.query.get(prod_id)
+            product = db.session.get(Product, prod_id)
             if not product:
                 continue
 
@@ -34,7 +34,7 @@ def validate_cart():
             variant_name = None
 
             if variant_id:
-                variant = ProductVariant.query.get(variant_id)
+                variant = db.session.get(ProductVariant, variant_id)
                 if variant:
                     price = variant.price
                     variant_name = variant.title
@@ -74,8 +74,9 @@ def validate_cart():
 
         shipping_fee = 0.0 if (subtotal == 0 or (subtotal - discount_amount) >= FREE_SHIPPING_THRESHOLD) else STANDARD_SHIPPING_FEE
         taxable_amount = max(0.0, subtotal - discount_amount)
-        tax_amount = round(taxable_amount * 0.18, 2)
-        total_amount = round(taxable_amount + shipping_fee + tax_amount, 2)
+        # Indian consumer retail: listed prices are inclusive of 18% GST
+        tax_amount = round(taxable_amount * (0.18 / 1.18), 2)
+        total_amount = max(0.0, round(taxable_amount + shipping_fee, 2))
 
         return jsonify({
             'items': validated_items,

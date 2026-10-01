@@ -1,19 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { api } from '../services/api';
 
 export const OrderTrackingPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const [inputOrderId, setInputOrderId] = useState(orderId || 'UNI-839210');
   const [currentTrackingId, setCurrentTrackingId] = useState(orderId || 'UNI-839210');
+  const [trackingData, setTrackingData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const steps = [
-    { title: 'Order Verified & Authorized', desc: 'Payment verified and inventory allocated', time: 'Yesterday, 10:30 AM', completed: true, current: false },
-    { title: 'Serialized QC Assessment & Sealed', desc: 'Product inspected by UniStore White-Glove standards', time: 'Yesterday, 02:15 PM', completed: true, current: false },
-    { title: 'Dispatched via Bluedart Air Hub', desc: 'Handed over to carrier for overnight air transit', time: 'Today, 08:40 AM', completed: true, current: false },
-    { title: 'In Transit — Out for Doorstep Delivery', desc: 'Assigned to courier executive with secure delivery OTP', time: 'Today, 11:20 AM', completed: true, current: true },
-    { title: 'Delivered & Handed Over', desc: 'Package receipt signed by recipient', time: 'Estimated by 4:00 PM Today', completed: false, current: false },
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    api.trackOrder(currentTrackingId)
+      .then((data) => {
+        if (isMounted && data) {
+          setTrackingData(data);
+        }
+      })
+      .catch((err) => {
+        console.warn('Tracking fetch note:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentTrackingId]);
+
+  const defaultSteps = [
+    { title: 'Order Verified & Authorized', desc: 'Payment verified and inventory allocated', time: '10:30 AM', completed: true, current: false },
+    { title: 'Serialized QC Assessment & Sealed', desc: 'Product inspected by UniStore White-Glove standards', time: '02:15 PM', completed: true, current: false },
+    { title: 'Dispatched via Air Hub', desc: 'Handed over to carrier for priority transit', time: '08:40 AM', completed: true, current: false },
+    { title: 'In Transit — Out for Doorstep Delivery', desc: 'Assigned to courier executive with secure OTP', time: '11:20 AM', completed: true, current: true },
+    { title: 'Delivered & Handed Over', desc: 'Package receipt signed by recipient', time: 'Estimated by 4:00 PM', completed: false, current: false },
   ];
+
+  const steps = trackingData?.events && trackingData.events.length > 0
+    ? trackingData.events.map((ev: any, idx: number, arr: any[]) => ({
+        title: ev.title,
+        desc: ev.desc,
+        time: ev.time,
+        completed: ev.completed ?? true,
+        current: idx === arr.length - 1 && ev.completed,
+      }))
+    : defaultSteps;
+
+  const carrierName = trackingData?.carrier || 'Bluedart Priority Air';
+  const awbNumber = trackingData?.tracking_number || '83920194821';
+  const estimatedDelivery = trackingData?.estimated_delivery || 'Today by 4:00 PM';
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +61,7 @@ export const OrderTrackingPage: React.FC = () => {
   };
 
   const handleCopyAWB = () => {
-    navigator.clipboard.writeText('83920194821');
+    navigator.clipboard.writeText(awbNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
@@ -61,9 +99,10 @@ export const OrderTrackingPage: React.FC = () => {
             />
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-zinc-950 text-white font-bold text-xs shadow-xs hover:bg-zinc-800 active:scale-95 transition-all"
+              disabled={isLoading}
+              className="px-5 py-2.5 rounded-xl bg-zinc-950 text-white font-bold text-xs shadow-xs hover:bg-zinc-800 active:scale-95 transition-all disabled:opacity-50"
             >
-              Track Order
+              {isLoading ? 'Locating...' : 'Track Order'}
             </button>
           </div>
         </form>
@@ -79,7 +118,7 @@ export const OrderTrackingPage: React.FC = () => {
             <div className="flex flex-wrap items-center gap-3">
               <div className="text-xs">
                 <span className="text-zinc-400 block text-[10px] uppercase tracking-wider font-semibold">Carrier & AWB</span>
-                <span className="font-bold text-zinc-900">Bluedart Air • 83920194821</span>
+                <span className="font-bold text-zinc-900">{carrierName} • {awbNumber}</span>
               </div>
               <button
                 type="button"
@@ -98,7 +137,7 @@ export const OrderTrackingPage: React.FC = () => {
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 <span>Active Delivery In Progress</span>
               </div>
-              <h3 className="text-lg font-bold">Estimated Delivery: Today by 4:00 PM</h3>
+              <h3 className="text-lg font-bold">Estimated Delivery: {estimatedDelivery}</h3>
               <p className="text-xs text-zinc-400 mt-0.5">Delivery OTP will be sent via SMS when executive reaches location.</p>
             </div>
             <div className="flex-shrink-0">
@@ -112,7 +151,7 @@ export const OrderTrackingPage: React.FC = () => {
           <div>
             <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider mb-6">Courier Milestone Timeline</h4>
             <div className="space-y-7 relative pl-7 before:absolute before:left-3 before:top-2 before:bottom-3 before:w-0.5 before:bg-zinc-200">
-              {steps.map((st, i) => (
+              {steps.map((st: any, i: number) => (
                 <div key={i} className="relative">
                   {/* Node indicator */}
                   <div
@@ -129,57 +168,29 @@ export const OrderTrackingPage: React.FC = () => {
 
                   <div>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                      <h4
-                        className={`text-xs sm:text-sm font-bold ${
-                          st.current
-                            ? 'text-zinc-950'
-                            : st.completed
-                            ? 'text-zinc-800'
-                            : 'text-zinc-400'
-                        }`}
-                      >
+                      <span className={`text-xs font-bold ${st.current ? 'text-zinc-950 text-sm' : st.completed ? 'text-zinc-900' : 'text-zinc-400'}`}>
                         {st.title}
-                      </h4>
-                      <span className="text-[11px] text-zinc-400 font-medium">{st.time}</span>
+                      </span>
+                      <span className="text-[11px] text-zinc-400 tabular-nums">{st.time}</span>
                     </div>
-                    <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">{st.desc}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">{st.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Courier Executive Box */}
-          <div className="bg-zinc-50 rounded-2xl p-4 border border-zinc-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-zinc-200 text-zinc-700 flex items-center justify-center font-bold text-xs">
-                RV
-              </div>
-              <div>
-                <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">Delivery Executive</span>
-                <div className="text-xs font-bold text-zinc-900">Rajesh V. (Bluedart Verified Associate)</div>
-              </div>
+          {/* Secure Verification OTP notice */}
+          <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex items-start gap-3">
+            <span className="material-symbols-outlined text-zinc-900 text-[20px] mt-0.5">
+              verified_user
+            </span>
+            <div className="text-xs">
+              <span className="font-bold text-zinc-900 block mb-0.5">Secure Doorstep Handover</span>
+              <p className="text-zinc-500 leading-relaxed">
+                To guarantee white-glove security, inspect package seal before sharing delivery authentication code with the Bluedart air courier representative.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <a
-                href="tel:+919876543210"
-                className="px-3.5 py-1.5 rounded-full bg-zinc-950 text-white text-xs font-semibold hover:bg-zinc-800 transition-colors flex items-center gap-1"
-              >
-                <span className="material-symbols-outlined text-[14px]">call</span>
-                <span>Contact Rider</span>
-              </a>
-            </div>
-          </div>
-
-          {/* Need Support Help */}
-          <div className="pt-2 flex items-center justify-between text-xs text-zinc-500 border-t border-zinc-100">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-zinc-700 text-[18px]">support_agent</span>
-              <span>Need help or address re-routing?</span>
-            </div>
-            <a href="mailto:support@unistore.com" className="font-bold text-zinc-950 hover:underline">
-              Contact 24/7 Support
-            </a>
           </div>
         </div>
       </div>

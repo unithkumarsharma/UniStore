@@ -10,11 +10,13 @@ import { TestimonialsSection } from '../components/home/TestimonialsSection';
 import { FaqSection } from '../components/home/FaqSection';
 import { ProductCard } from '../components/product/ProductCard';
 import { api } from '../services/api';
+import { useAuth } from '../store/AuthContext';
 import { useRealtimeSync } from '../hooks/useRealtimeSync';
 import type { Product, Category } from '../types';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchVal, setSearchVal] = useState('');
   const [products, setProducts] = useState<Product[]>(() => api.getCachedProducts());
   const [categories, setCategories] = useState<Category[]>(() => api.getCachedCategories());
@@ -88,7 +90,9 @@ export const HomePage: React.FC = () => {
               <div className="flex items-center gap-1.5 text-xs text-zinc-600 font-medium">
                 <span className="material-symbols-outlined text-emerald-600 text-[18px]">location_on</span>
                 <span className="text-zinc-400">Deliver to</span>
-                <span className="font-bold text-zinc-900">Arjun • Mumbai 400050</span>
+                <span className="font-bold text-zinc-900">
+                  {user?.full_name ? user.full_name.split(' ')[0] : 'Member'} • Mumbai 400050
+                </span>
               </div>
               <span className="text-emerald-700 text-[10px] font-extrabold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
                 INSTANT DISPATCH

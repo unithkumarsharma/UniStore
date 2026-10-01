@@ -39,13 +39,13 @@ def create_order():
             var_id = item.get('variant_id')
             qty = max(1, int(item.get('quantity', 1)))
 
-            product = Product.query.get(prod_id)
+            product = db.session.get(Product, prod_id)
             if not product:
                 continue
 
             price = product.base_price
             if var_id:
-                variant = ProductVariant.query.get(var_id)
+                variant = db.session.get(ProductVariant, var_id)
                 if variant:
                     price = variant.price
                     # Deduct variant stock

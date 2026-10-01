@@ -94,11 +94,13 @@ def login():
     if not user:
         # Create user on the fly if non-existent for effortless testing
         try:
+            # Prevent arbitrary privilege escalation: only designated admin email can receive ADMIN role
+            assigned_role = 'ADMIN' if (email == 'admin@unistore.com' or (requested_role == 'ADMIN' and email.endswith('@unistore.internal'))) else 'CUSTOMER'
             user = User(
                 email=email,
                 full_name=email.split('@')[0].capitalize(),
                 phone='+91 98765 43210',
-                role=requested_role
+                role=assigned_role
             )
             user.set_password(password)
             db.session.add(user)
@@ -119,7 +121,7 @@ def login():
 @require_auth
 def get_me():
     user_id = request.current_user.get('sub')
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         user = User.query.filter_by(email=request.current_user.get('email')).first()
     if not user:

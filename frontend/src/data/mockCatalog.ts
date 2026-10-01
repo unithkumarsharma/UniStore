@@ -429,7 +429,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     id: 'aaaa1111-0013-4000-8000-000000000013',
     name: 'Weatherproof Matte Black Commuter Backpack',
     slug: 'weatherproof-commuter-backpack',
-    description: '24L technical commuter backpack constructed with ballistic 1000D Cordura, waterproof YKK AquaGuard zips, magnetic Fidlock V-buckle, and floating 16\" laptop sleeve.',
+    description: '24L technical commuter backpack constructed with ballistic 1000D Cordura, waterproof YKK AquaGuard zips, magnetic Fidlock V-buckle, and floating 16" laptop sleeve.',
     category_id: '66666666-6666-6666-6666-666666666666',
     category_name: 'Travel Gear',
     category_slug: 'travel-gear',

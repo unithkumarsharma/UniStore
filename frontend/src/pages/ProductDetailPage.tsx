@@ -234,7 +234,7 @@ export const ProductDetailPage: React.FC = () => {
   const avgRating = (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1);
 
   return (
-    <div className="min-h-screen pb-20 md:pb-12" style={{ background: '#FAFAFA' }}>
+    <div className="min-h-screen pb-[calc(8.5rem+env(safe-area-inset-bottom,0px))] md:pb-12" style={{ background: '#FAFAFA' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
 
         {/* ══════════════════════════════════════════════════════════════════
@@ -829,7 +829,7 @@ export const ProductDetailPage: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════════
           STICKY MOBILE BUY BAR
           ══════════════════════════════════════════════════════════════════ */}
-      <div className="fixed bottom-14 left-0 w-full z-40 md:hidden" style={{ background: 'rgba(250,250,250,0.95)', backdropFilter: 'blur(16px) saturate(180%)' }}>
+      <div className="fixed bottom-[calc(3.75rem+env(safe-area-inset-bottom,0px))] left-0 w-full z-40 md:hidden" style={{ background: 'rgba(250,250,250,0.95)', backdropFilter: 'blur(16px) saturate(180%)' }}>
         <div className="border-t border-zinc-200 p-3 flex items-center justify-between gap-3 shadow-lg">
           <div className="flex items-center gap-2.5">
             <img

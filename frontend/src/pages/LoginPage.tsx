@@ -380,7 +380,7 @@ export const LoginPage: React.FC = () => {
                     await resendEmailVerification(unverifiedUser);
                     setResendSuccess(true);
                     setTimeout(() => setResendSuccess(false), 5000);
-                  } catch (e: any) {
+                  } catch {
                     setError('Could not resend verification link right now.');
                   }
                 }}

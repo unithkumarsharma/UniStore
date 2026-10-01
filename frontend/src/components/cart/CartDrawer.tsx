@@ -305,7 +305,7 @@ export const CartDrawer: React.FC = () => {
               </div>
 
               {/* Checkout CTA */}
-              <div className="px-6 pb-6 space-y-2.5">
+              <div className="px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] space-y-2.5">
                 <button
                   onClick={handleProceedToCheckout}
                   className="w-full py-4 px-6 rounded-2xl bg-zinc-900 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg hover:bg-zinc-800 active:scale-[0.98] transition-all"

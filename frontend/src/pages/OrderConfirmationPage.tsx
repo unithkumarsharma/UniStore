@@ -1,17 +1,52 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useParams, Link } from 'react-router-dom';
 import { formatCurrency } from '../utils/currency';
+import { api } from '../services/api';
 
 export const OrderConfirmationPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const location = useLocation();
-  const order = location.state?.order;
+  const [order, setOrder] = useState<any>(location.state?.order || null);
+  const [loading, setLoading] = useState<boolean>(!location.state?.order && !!orderId);
+
+  useEffect(() => {
+    if (order || !orderId) return;
+    let isMounted = true;
+    api.getOrders().then((res) => {
+      if (!isMounted) return;
+      const found = (res.orders || []).find(
+        (o: any) => o.order_number === orderId || o.id === orderId
+      );
+      if (found) {
+        setOrder(found);
+      }
+    }).catch((err) => {
+      console.warn('Could not restore order on reload:', err);
+    }).finally(() => {
+      if (isMounted) setLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [orderId, order]);
 
   const displayOrderId = orderId || order?.order_number || 'UNI-839210';
 
   const handlePrint = () => {
     window.print();
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-50/50 py-16 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full border-2 border-zinc-900 border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-xs text-zinc-500 font-medium">Retrieving verified order details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50/50 py-8 sm:py-14">
@@ -117,26 +152,28 @@ export const OrderConfirmationPage: React.FC = () => {
             <div className="text-left border-t border-zinc-100 pt-6 space-y-6">
               <div>
                 <h3 className="text-sm font-bold text-zinc-950 mb-3">Purchased Items</h3>
-                <div className="divide-y divide-zinc-100">
-                  {order.items.map((item: any) => (
-                    <div key={item.id} className="py-2.5 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-3">
-                        {item.product?.images?.[0]?.image_url && (
-                          <img
-                            src={item.product.images[0].image_url}
-                            alt={item.product.name}
-                            className="w-10 h-10 rounded-lg object-cover bg-zinc-100 border border-zinc-200/60"
-                          />
-                        )}
-                        <div>
-                          <span className="font-semibold text-zinc-900 block line-clamp-1">{item.product.name}</span>
-                          <span className="text-zinc-500 text-[11px]">Quantity: {item.quantity}</span>
+                  {(order.items || []).map((item: any) => {
+                    const itemImg = item.product?.images?.[0]?.image_url || item.image_url;
+                    const itemName = item.product?.name || item.product_name || 'UniStore Item';
+                    return (
+                      <div key={item.id} className="py-2.5 flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-3">
+                          {itemImg && (
+                            <img
+                              src={itemImg}
+                              alt={itemName}
+                              className="w-10 h-10 rounded-lg object-cover bg-zinc-100 border border-zinc-200/60"
+                            />
+                          )}
+                          <div>
+                            <span className="font-semibold text-zinc-900 block line-clamp-1">{itemName}</span>
+                            <span className="text-zinc-500 text-[11px]">Quantity: {item.quantity}</span>
+                          </div>
                         </div>
+                        <span className="font-bold text-zinc-950 tabular-nums">{formatCurrency(item.total)}</span>
                       </div>
-                      <span className="font-bold text-zinc-950 tabular-nums">{formatCurrency(item.total)}</span>
-                    </div>
-                  ))}
-                </div>
+                    );
+                  })}
               </div>
 
               {/* Financial Recap */}
