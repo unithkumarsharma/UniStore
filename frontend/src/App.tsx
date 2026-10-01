@@ -9,6 +9,7 @@ import { CartProvider } from './store/CartContext';
 import { WishlistProvider } from './store/WishlistContext';
 import { AppRouter } from './router/AppRouter';
 import { ScrollToTop } from './components/common/ScrollToTop';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 const NativeAppLifecycle: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
@@ -43,18 +44,20 @@ const NativeAppLifecycle: React.FC<{ children: React.ReactNode }> = ({ children 
 
 export function App() {
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <NativeAppLifecycle>
-        <AuthProvider>
-          <WishlistProvider>
-            <CartProvider>
-              <AppRouter />
-            </CartProvider>
-          </WishlistProvider>
-        </AuthProvider>
-      </NativeAppLifecycle>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ScrollToTop />
+        <NativeAppLifecycle>
+          <AuthProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <AppRouter />
+              </CartProvider>
+            </WishlistProvider>
+          </AuthProvider>
+        </NativeAppLifecycle>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

@@ -49,7 +49,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = Math.round(subtotal * (discountPercent / 100));
   const shippingFee = subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
-  const taxAmount = Math.round((subtotal - discountAmount) * 0.18);
+  // Listed prices are inclusive of 18% GST (Indian retail standard)
+  const taxAmount = Math.round((subtotal - discountAmount) * (0.18 / 1.18));
   const totalAmount = Math.max(0, subtotal - discountAmount + shippingFee);
 
   const totalItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
