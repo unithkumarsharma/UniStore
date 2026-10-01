@@ -14,11 +14,13 @@ import { useAuth } from '../store/AuthContext';
 import { useRealtimeSync } from '../hooks/useRealtimeSync';
 import type { Product, Category } from '../types';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePlatform } from '../store/PlatformContext';
 
 export const HomePage: React.FC = () => {
   useDocumentTitle('UniStore — Discover More. Live Better.');
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isAppMode } = usePlatform();
   const [searchVal, setSearchVal] = useState('');
   const [products, setProducts] = useState<Product[]>(() => api.getCachedProducts());
   const [categories, setCategories] = useState<Category[]>(() => api.getCachedCategories());
@@ -61,64 +63,78 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="w-full">
-      {/* Subheader: Location, Quick Search & Express Dispatch */}
-      <section className="bg-white border-b border-zinc-200/80 py-2.5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-            {/* Mobile Search input */}
-            <form
-              onSubmit={handleSearchSubmit}
-              className="md:hidden relative flex items-center bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2 shadow-2xs focus-within:border-zinc-900 transition-all"
-            >
-              <span className="material-symbols-outlined text-zinc-400 text-[20px] mr-2">search</span>
-              <input
-                type="text"
-                placeholder="Search curated lifestyle, tech & home..."
-                value={searchVal}
-                onChange={(e) => setSearchVal(e.target.value)}
-                className="w-full bg-transparent border-0 p-0 text-zinc-900 placeholder:text-zinc-400 text-xs focus:ring-0 focus:outline-none"
-              />
-              <button
-                type="button"
-                aria-label="Scan"
-                className="text-zinc-400 hover:text-zinc-900 pl-2 border-l border-zinc-200 active:scale-95 transition-transform"
+      {/* If Web Mode: show standard Desktop Subheader. If App Mode: show Amazon App-style Deal Strip */}
+      {!isAppMode ? (
+        <section className="bg-white border-b border-zinc-200/80 py-2.5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+              {/* Mobile Search input */}
+              <form
+                onSubmit={handleSearchSubmit}
+                className="md:hidden relative flex items-center bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2 shadow-2xs focus-within:border-zinc-900 transition-all"
               >
-                <span className="material-symbols-outlined text-[18px]">barcode_scanner</span>
-              </button>
-            </form>
+                <span className="material-symbols-outlined text-zinc-400 text-[20px] mr-2">search</span>
+                <input
+                  type="text"
+                  placeholder="Search curated lifestyle, tech & home..."
+                  value={searchVal}
+                  onChange={(e) => setSearchVal(e.target.value)}
+                  className="w-full bg-transparent border-0 p-0 text-zinc-900 placeholder:text-zinc-400 text-xs focus:ring-0 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  aria-label="Scan"
+                  className="text-zinc-400 hover:text-zinc-900 pl-2 border-l border-zinc-200 active:scale-95 transition-transform"
+                >
+                  <span className="material-symbols-outlined text-[18px]">barcode_scanner</span>
+                </button>
+              </form>
 
-            {/* Delivery Location Chip */}
-            <div className="flex items-center justify-between md:justify-start gap-3">
-              <div className="flex items-center gap-1.5 text-xs text-zinc-600 font-medium">
-                <span className="material-symbols-outlined text-emerald-600 text-[18px]">location_on</span>
-                <span className="text-zinc-400">Deliver to</span>
-                <span className="font-bold text-zinc-900">
-                  {user?.full_name ? user.full_name.split(' ')[0] : 'Member'} • Mumbai 400050
+              {/* Delivery Location Chip */}
+              <div className="flex items-center justify-between md:justify-start gap-3">
+                <div className="flex items-center gap-1.5 text-xs text-zinc-600 font-medium">
+                  <span className="material-symbols-outlined text-emerald-600 text-[18px]">location_on</span>
+                  <span className="text-zinc-400">Deliver to</span>
+                  <span className="font-bold text-zinc-900">
+                    {user?.full_name ? user.full_name.split(' ')[0] : 'Member'} • Mumbai 400050
+                  </span>
+                </div>
+                <span className="text-emerald-700 text-[10px] font-extrabold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
+                  INSTANT DISPATCH
                 </span>
               </div>
-              <span className="text-emerald-700 text-[10px] font-extrabold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
-                INSTANT DISPATCH
-              </span>
-            </div>
 
-            {/* Desktop USPs */}
-            <div className="hidden md:flex items-center gap-6 text-xs text-zinc-500 font-medium">
-              <span className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-amber-500">bolt</span>
-                Same-Day Metros Delivery
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
-                100% Brand Authentic
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-zinc-700">inventory_2</span>
-                Plastic-Free Eco Packaging
-              </span>
+              {/* Desktop USPs */}
+              <div className="hidden md:flex items-center gap-6 text-xs text-zinc-500 font-medium">
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-amber-500">bolt</span>
+                  Same-Day Metros Delivery
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
+                  100% Brand Authentic
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-zinc-700">inventory_2</span>
+                  Plastic-Free Eco Packaging
+                </span>
+              </div>
             </div>
           </div>
+        </section>
+      ) : (
+        <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white px-3.5 py-2 flex items-center justify-between text-xs font-bold shadow-xs">
+          <div className="flex items-center gap-1.5 truncate">
+            <span className="material-symbols-outlined text-[16px] animate-bounce">bolt</span>
+            <span className="truncate text-[11px]">
+              ⚡ APP EXCLUSIVE: Extra 10% Off via UniPay • Free 1-Day Priority Air
+            </span>
+          </div>
+          <span className="text-[10px] bg-white text-zinc-950 px-2 py-0.5 rounded-full font-black shrink-0 ml-2">
+            APPLY 10%
+          </span>
         </div>
-      </section>
+      )}
 
       {/* Main Page Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-12">

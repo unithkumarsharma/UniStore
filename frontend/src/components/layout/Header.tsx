@@ -8,6 +8,7 @@ import { formatCurrency } from '../../utils/currency';
 import type { Product } from '../../types';
 import logoImg from '../../assets/logo.png';
 import { AnnouncementBar } from './AnnouncementBar';
+import { usePlatform } from '../../store/PlatformContext';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export const Header: React.FC = () => {
   const { totalItemCount, setIsCartOpen } = useCart();
   const { wishlistCount } = useWishlist();
   const { user, isAdmin, logout } = useAuth();
+  const { toggleAppMode } = usePlatform();
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchResults, setSearchResults] = useState<Product[]>([]);
@@ -234,6 +236,17 @@ export const Header: React.FC = () => {
             <span className="material-symbols-outlined text-[22px]">
               {isMobileSearchOpen ? 'close' : 'search'}
             </span>
+          </button>
+
+          {/* Switch to Amazon App Experience (Preview Toggle) */}
+          <button
+            type="button"
+            onClick={toggleAppMode}
+            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-[11px] font-bold transition shadow-2xs border border-zinc-200 active:scale-95"
+            title="Preview Amazon Mobile App View"
+          >
+            <span className="material-symbols-outlined text-[15px] text-amber-600">smartphone</span>
+            <span>App Mode</span>
           </button>
 
           {/* Wishlist Button */}

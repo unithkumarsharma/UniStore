@@ -7,6 +7,7 @@ import { App as CapApp } from '@capacitor/app';
 import { AuthProvider } from './store/AuthContext';
 import { CartProvider } from './store/CartContext';
 import { WishlistProvider } from './store/WishlistContext';
+import { PlatformProvider } from './store/PlatformContext';
 import { AppRouter } from './router/AppRouter';
 import { ScrollToTop } from './components/common/ScrollToTop';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
@@ -51,7 +52,9 @@ export function App() {
           <AuthProvider>
             <WishlistProvider>
               <CartProvider>
-                <AppRouter />
+                <PlatformProvider>
+                  <AppRouter />
+                </PlatformProvider>
               </CartProvider>
             </WishlistProvider>
           </AuthProvider>
