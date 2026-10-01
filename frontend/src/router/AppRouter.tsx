@@ -13,7 +13,6 @@ const CheckoutPage = lazy(() => import('../pages/CheckoutPage').then((m) => ({ d
 const OrderConfirmationPage = lazy(() => import('../pages/OrderConfirmationPage').then((m) => ({ default: m.OrderConfirmationPage })));
 const OrderTrackingPage = lazy(() => import('../pages/OrderTrackingPage').then((m) => ({ default: m.OrderTrackingPage })));
 const AccountPage = lazy(() => import('../pages/AccountPage').then((m) => ({ default: m.AccountPage })));
-const AppYouPage = lazy(() => import('../pages/AppYouPage').then((m) => ({ default: m.AppYouPage })));
 const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })));
 const InfoPage = lazy(() => import('../pages/InfoPage').then((m) => ({ default: m.InfoPage })));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
@@ -43,7 +42,6 @@ export const AppRouter: React.FC = () => {
           <Route path="orders/:orderId/track" element={<OrderTrackingPage />} />
           <Route path="orders/track" element={<OrderTrackingPage />} />
           <Route path="account/*" element={<AccountPage />} />
-          <Route path="you" element={<AppYouPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<LoginPage />} />
           <Route path="admin/*" element={<AdminDashboardPage />} />
