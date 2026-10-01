@@ -170,9 +170,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               >
                 star
               </span>
-              {product.rating.toFixed(1)}
+              {(product.rating || 0).toFixed(1)}
             </span>
-            <span className="text-zinc-400 font-medium">({product.review_count.toLocaleString('en-IN')})</span>
+            <span className="text-zinc-400 font-medium">({(product.review_count || 0).toLocaleString('en-IN')})</span>
           </div>
 
           {/* Product Title */}

@@ -494,12 +494,12 @@ export const CheckoutPage: React.FC = () => {
               {cart.items.map((item) => (
                 <div key={item.id} className="flex items-center gap-3">
                   <img
-                    src={item.product.images[0]?.image_url}
-                    alt={item.product.name}
+                    src={item.product?.images?.[0]?.image_url || '/placeholder.png'}
+                    alt={item.product?.name || 'Item'}
                     className="w-10 h-10 rounded-lg object-cover bg-zinc-100 flex-shrink-0 border border-zinc-200/60"
                   />
                   <div className="flex-1 min-w-0 text-xs">
-                    <p className="font-semibold text-zinc-900 truncate">{item.product.name}</p>
+                    <p className="font-semibold text-zinc-900 truncate">{item.product?.name || 'Item'}</p>
                     <p className="text-zinc-500">Qty: {item.quantity}</p>
                   </div>
                   <span className="text-xs font-bold text-zinc-900 tabular-nums">
@@ -731,12 +731,12 @@ export const CheckoutPage: React.FC = () => {
                   {cart.items.map((item) => (
                     <div key={item.id} className="py-3 flex items-center gap-3 sm:gap-4">
                       <img
-                        src={item.product.images[0]?.image_url}
-                        alt={item.product.name}
+                        src={item.product?.images?.[0]?.image_url || '/placeholder.png'}
+                        alt={item.product?.name || 'Item'}
                         className="w-14 h-14 rounded-xl object-cover bg-zinc-100 flex-shrink-0 border border-zinc-200/60"
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-xs sm:text-sm font-semibold text-zinc-950 truncate">{item.product.name}</h4>
+                        <h4 className="text-xs sm:text-sm font-semibold text-zinc-950 truncate">{item.product?.name || 'Item'}</h4>
                         <div className="text-[11px] text-zinc-500 mt-0.5">
                           Qty: {item.quantity} × {formatCurrency(item.price)}
                         </div>

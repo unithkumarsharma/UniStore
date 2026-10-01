@@ -194,7 +194,7 @@ export const CartDrawer: React.FC = () => {
                           <span className="material-symbols-outlined text-[16px]">close</span>
                         </button>
                       </div>
-                      {item.variant && (
+                      {item.variant && item.variant.attributes && Object.keys(item.variant.attributes).length > 0 && (
                         <span className="text-[11px] text-zinc-400 font-medium">
                           {Object.entries(item.variant.attributes).map(([k, v]) => `${k}: ${v}`).join(' • ')}
                         </span>

@@ -193,7 +193,7 @@ export const Header: React.FC = () => {
                     className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-zinc-50 transition-colors group"
                   >
                     <img
-                      src={product.images?.[0]?.image_url}
+                      src={product.images?.[0]?.image_url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'}
                       alt={product.name}
                       className="w-10 h-10 rounded-lg object-cover bg-zinc-100 flex-shrink-0 border border-zinc-200/50"
                     />
@@ -373,7 +373,7 @@ export const Header: React.FC = () => {
                   className="flex items-center gap-3 p-2.5 hover:bg-zinc-50 transition-colors"
                 >
                   <img
-                    src={product.images?.[0]?.image_url}
+                    src={product.images?.[0]?.image_url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'}
                     alt={product.name}
                     className="w-9 h-9 rounded-lg object-cover bg-zinc-100 flex-shrink-0"
                   />

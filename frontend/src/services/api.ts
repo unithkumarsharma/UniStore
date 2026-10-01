@@ -153,7 +153,7 @@ export const api = {
           review_count: p.review_count,
           badge: p.badge,
           images: (p.images || []).sort((a: any, b: any) => a.display_order - b.display_order),
-          variants: p.variants || [],
+          variants: (p.variants || []).map((v: any) => ({ ...v, attributes: v.attributes || {} })),
           created_at: p.created_at,
           updated_at: p.updated_at,
         }));
@@ -244,7 +244,7 @@ export const api = {
           review_count: data.review_count,
           badge: data.badge,
           images: (data.images || []).sort((a: any, b: any) => a.display_order - b.display_order),
-          variants: data.variants || [],
+          variants: (data.variants || []).map((v: any) => ({ ...v, attributes: v.attributes || {} })),
           created_at: data.created_at,
           updated_at: data.updated_at,
         };

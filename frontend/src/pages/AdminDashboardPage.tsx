@@ -326,7 +326,7 @@ export const AdminDashboardPage: React.FC = () => {
                       <td className="py-3 text-secondary">{ord.customer || ord.shipping_address?.full_name || 'Customer'}</td>
                       <td className="py-3 text-secondary truncate max-w-xs">
                         {Array.isArray(ord.items)
-                          ? ord.items.map((i: any) => `${i.product_name || i.name} (x${i.quantity})`).join(', ')
+                          ? ord.items.map((i: any) => `${i.product_name || i.name || i.product?.name || 'Item'} (x${i.quantity || 1})`).join(', ')
                           : (ord.items || 'Standard Item')}
                       </td>
                       <td className="py-3 font-bold text-on-surface tabular-nums">{formatCurrency(ord.total || ord.total_amount || 0)}</td>
@@ -445,7 +445,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                   <div className="text-xs text-secondary">
                     {Array.isArray(ord.items)
-                      ? ord.items.map((i: any) => `${i.product_name || i.name} (x${i.quantity})`).join(', ')
+                      ? ord.items.map((i: any) => `${i.product_name || i.name || i.product?.name || 'Item'} (x${i.quantity || 1})`).join(', ')
                       : (ord.items || 'Standard Item')}
                   </div>
                   <div className="text-xs font-bold text-on-surface mt-1 tabular-nums">

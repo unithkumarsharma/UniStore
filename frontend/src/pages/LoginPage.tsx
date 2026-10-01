@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import {
@@ -30,6 +30,16 @@ export const LoginPage: React.FC = () => {
 
   // Mode: 'signin' | 'signup' | 'forgot'
   const [pageMode, setPageMode] = useState<'signin' | 'signup' | 'forgot'>(initialMode);
+
+  useEffect(() => {
+    const mode = location.pathname.includes('register') || searchParams.get('mode') === 'signup'
+      ? 'signup'
+      : searchParams.get('mode') === 'forgot'
+      ? 'forgot'
+      : 'signin';
+    setPageMode(mode);
+  }, [location.pathname, searchParams]);
+
   // Method: 'email' | 'phone'
   const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
 

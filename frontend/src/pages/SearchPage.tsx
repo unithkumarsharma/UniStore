@@ -54,7 +54,7 @@ export const SearchPage: React.FC = () => {
   const sortedProducts = [...products].sort((a, b) => {
     if (sortBy === 'price-low') return a.base_price - b.base_price;
     if (sortBy === 'price-high') return b.base_price - a.base_price;
-    if (sortBy === 'rating') return b.rating - a.rating;
+    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
     return 0; // relevance = default order
   });
 

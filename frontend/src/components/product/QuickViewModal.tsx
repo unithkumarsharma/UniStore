@@ -135,8 +135,8 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
                   <span className="material-symbols-outlined text-[15px] text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>
                     star
                   </span>
-                  <span className="font-bold text-zinc-900">{product.rating.toFixed(1)}</span>
-                  <span className="text-zinc-500">({product.review_count})</span>
+                  <span className="font-bold text-zinc-900">{(product.rating || 0).toFixed(1)}</span>
+                  <span className="text-zinc-500">({product.review_count || 0})</span>
                 </div>
               </div>
 

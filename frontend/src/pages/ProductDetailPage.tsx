@@ -226,7 +226,7 @@ export const ProductDetailPage: React.FC = () => {
     const newRev = {
       id: `r-${Date.now()}`,
       author: newReviewAuthor,
-      avatar: newReviewAuthor.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2),
+      avatar: (newReviewAuthor.trim().split(/\s+/).filter(Boolean).map(w => w[0] || '').join('').toUpperCase().slice(0, 2)) || 'U',
       rating: newReviewRating,
       date: 'Just now',
       title: 'Customer Review',
@@ -240,7 +240,9 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   // Average rating
-  const avgRating = (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1);
+  const avgRating = reviews.length > 0 
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) 
+    : (product?.rating || 5.0).toFixed(1);
 
   return (
     <div className="min-h-screen pb-[calc(8.5rem+env(safe-area-inset-bottom,0px))] md:pb-12" style={{ background: '#FAFAFA' }}>
@@ -383,8 +385,8 @@ export const ProductDetailPage: React.FC = () => {
                     </span>
                   ))}
                 </div>
-                <span className="text-sm font-bold text-zinc-900">{product.rating.toFixed(1)}</span>
-                <span className="text-xs text-zinc-400">({product.review_count.toLocaleString('en-IN')} reviews)</span>
+                <span className="text-sm font-bold text-zinc-900">{(product.rating || 0).toFixed(1)}</span>
+                <span className="text-xs text-zinc-400">({(product.review_count || 0).toLocaleString('en-IN')} reviews)</span>
               </div>
 
               {/* Price Block */}
@@ -842,7 +844,7 @@ export const ProductDetailPage: React.FC = () => {
         <div className="border-t border-zinc-200 p-3 flex items-center justify-between gap-3 shadow-lg">
           <div className="flex items-center gap-2.5">
             <img
-              src={images[0]?.image_url}
+              src={images[0]?.image_url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'}
               alt={product.name}
               className="w-11 h-11 rounded-xl object-cover bg-zinc-100 border border-zinc-200"
             />

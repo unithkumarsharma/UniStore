@@ -13,6 +13,13 @@ export const OrderTrackingPage: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (orderId) {
+      setInputOrderId(orderId);
+      setCurrentTrackingId(orderId);
+    }
+  }, [orderId]);
+
+  useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
     api.trackOrder(currentTrackingId)

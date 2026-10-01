@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, useParams, Link } from 'react-router-dom';
 import { ProductCard } from '../components/product/ProductCard';
 import { api } from '../services/api';
 import { useRealtimeSync } from '../hooks/useRealtimeSync';
@@ -77,8 +77,9 @@ const AnimatedCard: React.FC<{ children: React.ReactNode; index: number }> = ({ 
 };
 
 export const ShopPage: React.FC = () => {
+  const { slug: routeCategorySlug } = useParams<{ slug?: string }>();
   const [searchParams] = useSearchParams();
-  const categoryParam = searchParams.get('category');
+  const categoryParam = routeCategorySlug || searchParams.get('category');
   const sortParam = searchParams.get('sort') || 'popularity';
   const filterParam = searchParams.get('filter');
 
@@ -126,10 +127,13 @@ export const ShopPage: React.FC = () => {
 
   // Sync category param if changed in URL
   useEffect(() => {
-    if (categoryParam) {
-      setSelectedCategory(categoryParam);
+    const activeCategory = routeCategorySlug || searchParams.get('category');
+    if (activeCategory) {
+      setSelectedCategory(activeCategory);
+    } else if (!routeCategorySlug && !searchParams.get('category')) {
+      setSelectedCategory('all');
     }
-  }, [categoryParam]);
+  }, [routeCategorySlug, searchParams]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
