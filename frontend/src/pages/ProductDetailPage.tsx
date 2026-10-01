@@ -8,6 +8,8 @@ import { useCart } from '../store/CartContext';
 import { useWishlist } from '../store/WishlistContext';
 import { ProductCard } from '../components/product/ProductCard';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { PincodeEstimator } from '../components/product/PincodeEstimator';
+import { FrequentlyBoughtTogether } from '../components/product/FrequentlyBoughtTogether';
 
 // ── Deterministic Color Swatches ────────────────────────────────────────────
 const getSwatches = (categorySlug?: string, name?: string) => {
@@ -521,6 +523,9 @@ export const ProductDetailPage: React.FC = () => {
                 </button>
               </div>
 
+              {/* Pincode & Delivery Availability Checker */}
+              <PincodeEstimator currentPrice={currentPrice} />
+
               {/* Delivery & Trust Strip */}
               <div className="bg-white rounded-2xl border border-zinc-100 divide-y divide-zinc-100 shadow-xs overflow-hidden">
                 <div className="flex items-center gap-3 px-5 py-3.5">
@@ -555,6 +560,9 @@ export const ProductDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Frequently Bought Together Bundle Upsell */}
+        {product && <FrequentlyBoughtTogether currentProduct={product} />}
 
 
         {/* ══════════════════════════════════════════════════════════════════

@@ -32,7 +32,8 @@ export const CheckoutPage: React.FC = () => {
   });
 
   const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'CARD' | 'NETBANKING' | 'COD'>('UPI');
-  const [upiMode, setUpiMode] = useState<'ID' | 'QR'>('ID');
+  const [upiMode, setUpiMode] = useState<'APPS' | 'ID' | 'QR'>('APPS');
+  const [selectedUpiApp, setSelectedUpiApp] = useState<'gpay' | 'phonepe' | 'paytm' | 'cred'>('gpay');
   const [upiId, setUpiId] = useState('');
   const [isWaitingUpi, setIsWaitingUpi] = useState(false);
   const [upiTimeLeft, setUpiTimeLeft] = useState(300);
@@ -364,7 +365,17 @@ export const CheckoutPage: React.FC = () => {
 
       let methodSpecificOptions: any = {};
 
-      if (paymentMethod === 'UPI' && upiMode === 'ID') {
+      if (paymentMethod === 'UPI' && upiMode === 'APPS') {
+        methodSpecificOptions = {
+          method: 'upi',
+          prefill: {
+            name: address.full_name,
+            contact: cleanPhone ? `+91${cleanPhone}` : undefined,
+            email: user?.email || '',
+            method: 'upi',
+          },
+        };
+      } else if (paymentMethod === 'UPI' && upiMode === 'ID') {
         methodSpecificOptions = {
           method: 'upi',
           vpa: upiId.trim(),
@@ -851,7 +862,31 @@ export const CheckoutPage: React.FC = () => {
                         {/* On-Page UPI Controls */}
                         {paymentMethod === 'UPI' && (
                           <div className="mt-4 pt-4 border-t border-zinc-200/80 space-y-4">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setUpiMode('APPS')}
+                                className={`py-1.5 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                  upiMode === 'APPS'
+                                    ? 'bg-zinc-950 text-white shadow-xs'
+                                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                                }`}
+                              >
+                                <span className="material-symbols-outlined text-[15px]">bolt</span>
+                                <span>1-Tap UPI Apps</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setUpiMode('QR')}
+                                className={`py-1.5 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                  upiMode === 'QR'
+                                    ? 'bg-zinc-950 text-white shadow-xs'
+                                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                                }`}
+                              >
+                                <span className="material-symbols-outlined text-[15px]">qr_code_scanner</span>
+                                <span>Scan UPI QR</span>
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => setUpiMode('ID')}
@@ -864,19 +899,89 @@ export const CheckoutPage: React.FC = () => {
                                 <span className="material-symbols-outlined text-[15px]">alternate_email</span>
                                 <span>Enter UPI ID</span>
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => setUpiMode('QR')}
-                                className={`py-1.5 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                                  upiMode === 'QR'
-                                    ? 'bg-zinc-950 text-white shadow-xs'
-                                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                                }`}
-                              >
-                                <span className="material-symbols-outlined text-[15px]">qr_code_scanner</span>
-                                <span>Scan UPI QR Code</span>
-                              </button>
                             </div>
+
+                            {upiMode === 'APPS' && (
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                  {[
+                                    {
+                                      id: 'gpay' as const,
+                                      name: 'Google Pay',
+                                      sub: '1-Tap Auto-Debit',
+                                      badge: '⚡ Instant',
+                                      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                      icon: 'account_balance_wallet',
+                                      color: '#4285F4',
+                                    },
+                                    {
+                                      id: 'phonepe' as const,
+                                      name: 'PhonePe',
+                                      sub: 'Direct Bank UPI',
+                                      badge: '🔒 Preferred',
+                                      badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
+                                      icon: 'payments',
+                                      color: '#5f259f',
+                                    },
+                                    {
+                                      id: 'paytm' as const,
+                                      name: 'Paytm UPI',
+                                      sub: 'Zero Gateway Fee',
+                                      badge: '✓ Verified',
+                                      badgeColor: 'bg-sky-50 text-sky-700 border-sky-200',
+                                      icon: 'credit_card',
+                                      color: '#00b9f5',
+                                    },
+                                    {
+                                      id: 'cred' as const,
+                                      name: 'CRED / BHIM',
+                                      sub: 'Earn Extra Coins',
+                                      badge: '★ Rewards',
+                                      badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
+                                      icon: 'stars',
+                                      color: '#18181b',
+                                    },
+                                  ].map((app) => (
+                                    <button
+                                      key={app.id}
+                                      type="button"
+                                      onClick={() => setSelectedUpiApp(app.id)}
+                                      className={`p-3 rounded-2xl border text-left transition-all relative flex flex-col justify-between ${
+                                        selectedUpiApp === app.id
+                                          ? 'border-zinc-950 bg-white ring-2 ring-zinc-950/10 shadow-xs'
+                                          : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                      }`}
+                                    >
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="w-8 h-8 rounded-xl bg-zinc-50 border border-zinc-100 flex items-center justify-center">
+                                          <span className="material-symbols-outlined text-[18px]" style={{ color: app.color }}>
+                                            {app.icon}
+                                          </span>
+                                        </div>
+                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                                          selectedUpiApp === app.id ? 'border-zinc-950 bg-zinc-950' : 'border-zinc-300'
+                                        }`}>
+                                          {selectedUpiApp === app.id && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <span className="font-bold text-xs text-zinc-900 block">{app.name}</span>
+                                        <p className="text-[10px] text-zinc-400 mt-0.5">{app.sub}</p>
+                                      </div>
+                                      <span className={`inline-block mt-2 text-[9px] font-bold px-1.5 py-0.5 rounded border self-start ${app.badgeColor}`}>
+                                        {app.badge}
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200/80 text-[11px] text-zinc-500 flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-emerald-600 text-[16px]">verified</span>
+                                  <span>
+                                    Ready to pay using <strong>{selectedUpiApp === 'gpay' ? 'Google Pay' : selectedUpiApp === 'phonepe' ? 'PhonePe' : selectedUpiApp === 'paytm' ? 'Paytm' : 'CRED'}</strong>. Clicking Pay below will open your app securely.
+                                  </span>
+                                </div>
+                              </div>
+                            )}
 
                             {upiMode === 'ID' && (
                               <div className="space-y-2.5">
@@ -1202,6 +1307,7 @@ export const CheckoutPage: React.FC = () => {
                     ) : (
                       <>
                         <span>
+                          {paymentMethod === 'UPI' && upiMode === 'APPS' && `Pay with ${selectedUpiApp === 'gpay' ? 'Google Pay' : selectedUpiApp === 'phonepe' ? 'PhonePe' : selectedUpiApp === 'paytm' ? 'Paytm' : 'CRED'}`}
                           {paymentMethod === 'UPI' && upiMode === 'ID' && 'Send UPI Request & Pay'}
                           {paymentMethod === 'UPI' && upiMode === 'QR' && 'Verify & Confirm Payment'}
                           {paymentMethod === 'CARD' && 'Pay Securely via Card'}

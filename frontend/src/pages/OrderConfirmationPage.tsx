@@ -3,6 +3,7 @@ import { useLocation, useParams, Link } from 'react-router-dom';
 import { formatCurrency } from '../utils/currency';
 import { api } from '../services/api';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { TaxInvoiceModal } from '../components/orders/TaxInvoiceModal';
 
 export const OrderConfirmationPage: React.FC = () => {
   useDocumentTitle('Order Confirmed');
@@ -10,6 +11,7 @@ export const OrderConfirmationPage: React.FC = () => {
   const location = useLocation();
   const [order, setOrder] = useState<any>(location.state?.order || null);
   const [loading, setLoading] = useState<boolean>(!location.state?.order && !!orderId);
+  const [showInvoice, setShowInvoice] = useState<boolean>(false);
 
   useEffect(() => {
     if (order || !orderId) return;
@@ -134,6 +136,14 @@ export const OrderConfirmationPage: React.FC = () => {
               <span>Track Live Delivery</span>
             </Link>
             <button
+              onClick={() => setShowInvoice(true)}
+              type="button"
+              className="w-full sm:w-auto py-3 px-6 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[16px] text-emerald-700">receipt_long</span>
+              <span>Tax Invoice (GST)</span>
+            </button>
+            <button
               onClick={handlePrint}
               type="button"
               className="w-full sm:w-auto py-3 px-6 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
@@ -226,6 +236,13 @@ export const OrderConfirmationPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Official Tax Invoice Modal */}
+      <TaxInvoiceModal
+        isOpen={showInvoice}
+        onClose={() => setShowInvoice(false)}
+        order={order || { order_number: displayOrderId, total_amount: 2999 }}
+      />
     </div>
   );
 };

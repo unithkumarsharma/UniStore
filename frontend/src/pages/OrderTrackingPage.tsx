@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { TaxInvoiceModal } from '../components/orders/TaxInvoiceModal';
 
 export const OrderTrackingPage: React.FC = () => {
   useDocumentTitle('Live Order Tracking');
@@ -11,6 +12,7 @@ export const OrderTrackingPage: React.FC = () => {
   const [trackingData, setTrackingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
 
   useEffect(() => {
     if (orderId) {
@@ -136,6 +138,14 @@ export const OrderTrackingPage: React.FC = () => {
               >
                 {copied ? '✓ Copied' : 'Copy AWB'}
               </button>
+              <button
+                type="button"
+                onClick={() => setShowInvoice(true)}
+                className="px-3 py-1 text-[11px] rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold transition-colors flex items-center gap-1 shadow-2xs"
+              >
+                <span className="material-symbols-outlined text-[14px] text-emerald-600">receipt_long</span>
+                <span>GST Invoice</span>
+              </button>
             </div>
           </div>
 
@@ -203,6 +213,13 @@ export const OrderTrackingPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Official Tax Invoice Modal */}
+      <TaxInvoiceModal
+        isOpen={showInvoice}
+        onClose={() => setShowInvoice(false)}
+        order={trackingData?.order || { order_number: currentTrackingId, total_amount: 2999 }}
+      />
     </div>
   );
 };
