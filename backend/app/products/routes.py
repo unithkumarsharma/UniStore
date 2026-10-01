@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import joinedload
 import time
-from app.models import db, Product, Category
+from app.models import Product
+from app.supabase_client import get_supabase
 
 products_bp = Blueprint('products', __name__, url_prefix='/api/products')
 
@@ -13,11 +14,8 @@ _CATALOG_CACHE = {
 }
 
 def invalidate_products_cache():
-    global _CATALOG_CACHE
     _CATALOG_CACHE['products'] = None
     _CATALOG_CACHE['timestamp'] = 0
-
-from app.supabase_client import get_supabase
 
 def fetch_all_active_products():
     now = time.time()

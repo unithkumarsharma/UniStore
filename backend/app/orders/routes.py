@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 import random
-import datetime
 from app.models import db, Order, OrderItem, Product, ProductVariant
 
 orders_bp = Blueprint('orders', __name__, url_prefix='/api/orders')

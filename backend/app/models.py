@@ -9,7 +9,13 @@ db = SQLAlchemy()
 def generate_uuid():
     return str(uuid.uuid4())
 
-class User(db.Model):
+class BaseModel(db.Model):
+    __abstract__ = True
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+class User(BaseModel):
     __tablename__ = 'users'
 
     id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
@@ -42,7 +48,7 @@ class User(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
 
-class Category(db.Model):
+class Category(BaseModel):
     __tablename__ = 'categories'
 
     id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
@@ -69,7 +75,7 @@ class Category(db.Model):
             'item_count': len([p for p in self.products if p.is_active]) if self.products else 0,
         }
 
-class Product(db.Model):
+class Product(BaseModel):
     __tablename__ = 'products'
 
     id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
@@ -118,7 +124,7 @@ class Product(db.Model):
             'variants': [v.to_dict() for v in self.variants if v.is_active],
         }
 
-class ProductImage(db.Model):
+class ProductImage(BaseModel):
     __tablename__ = 'product_images'
 
     id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
@@ -135,7 +141,7 @@ class ProductImage(db.Model):
             'display_order': self.display_order,
         }
 
-class ProductVariant(db.Model):
+class ProductVariant(BaseModel):
     __tablename__ = 'product_variants'
 
     id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
@@ -170,7 +176,7 @@ class ProductVariant(db.Model):
             'is_active': self.is_active,
         }
 
-class Order(db.Model):
+class Order(BaseModel):
     __tablename__ = 'orders'
 
     id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
@@ -230,7 +236,7 @@ class Order(db.Model):
             'items': [item.to_dict() for item in self.items],
         }
 
-class OrderItem(db.Model):
+class OrderItem(BaseModel):
     __tablename__ = 'order_items'
 
     id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
@@ -255,7 +261,7 @@ class OrderItem(db.Model):
             'image_url': self.image_url,
         }
 
-class Coupon(db.Model):
+class Coupon(BaseModel):
     __tablename__ = 'coupons'
 
     id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
@@ -278,7 +284,7 @@ class Coupon(db.Model):
             'is_active': self.is_active,
         }
 
-class Review(db.Model):
+class Review(BaseModel):
     __tablename__ = 'reviews'
 
     id = db.Column(db.String(36), primary_key=True, default=generate_uuid)

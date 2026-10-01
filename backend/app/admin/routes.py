@@ -1,7 +1,7 @@
 import random
 from flask import Blueprint, request, jsonify
 from app.auth.routes import require_role
-from app.models import db, Product, Order, User, Category, ProductImage
+from app.models import db, Product, Order, User, ProductImage
 from app.supabase_client import get_supabase
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
