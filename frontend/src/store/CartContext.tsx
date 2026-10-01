@@ -24,7 +24,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem('unistore_cart');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter((item) => item && item.id && item.product && typeof item.price === 'number');
     } catch {
       return [];
     }
@@ -34,8 +37,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [couponCode, setCouponCode] = useState<string | undefined>(() => {
     return localStorage.getItem('unistore_coupon') || undefined;
   });
-  const [discountPercent, setDiscountPercent] = useState<number>(() => {
-    return couponCode ? 10 : 0;
+  const [discountType, setDiscountType] = useState<'PERCENTAGE' | 'FIXED'>(() => {
+    const saved = localStorage.getItem('unistore_coupon');
+    return saved === 'FLAT500' ? 'FIXED' : 'PERCENTAGE';
+  });
+  const [discountValue, setDiscountValue] = useState<number>(() => {
+    const saved = localStorage.getItem('unistore_coupon');
+    if (saved === 'FLAT500') return 500;
+    if (saved === 'FESTIVE20') return 20;
+    if (saved === 'WELCOME10' || saved === 'UNISTORE10') return 10;
+    return 0;
   });
 
   useEffect(() => {
@@ -47,8 +58,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [items]);
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const discountAmount = Math.round(subtotal * (discountPercent / 100));
-  const shippingFee = subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
+  const discountAmount = discountType === 'FIXED'
+    ? Math.min(discountValue, subtotal)
+    : Math.round(subtotal * (discountValue / 100));
+  const shippingFee = subtotal === 0 || (subtotal - discountAmount) >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
   // Listed prices are inclusive of 18% GST (Indian retail standard)
   const taxAmount = Math.round((subtotal - discountAmount) * (0.18 / 1.18));
   const totalAmount = Math.max(0, subtotal - discountAmount + shippingFee);
@@ -121,7 +134,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearCart = () => {
     setItems([]);
     setCouponCode(undefined);
-    setDiscountPercent(0);
+    setDiscountType('PERCENTAGE');
+    setDiscountValue(0);
     localStorage.removeItem('unistore_cart');
     localStorage.removeItem('unistore_coupon');
   };
@@ -129,23 +143,42 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const applyCoupon = (code: string) => {
     const cleanCode = code.trim().toUpperCase();
     if (cleanCode === 'WELCOME10' || cleanCode === 'UNISTORE10') {
+      if (subtotal < 999) {
+        return { success: false, message: 'Minimum order value of ₹999 required for this coupon.' };
+      }
       setCouponCode(cleanCode);
-      setDiscountPercent(10);
+      setDiscountType('PERCENTAGE');
+      setDiscountValue(10);
       localStorage.setItem('unistore_coupon', cleanCode);
       return { success: true, message: 'Coupon applied! 10% discount added.' };
     }
     if (cleanCode === 'FESTIVE20') {
+      if (subtotal < 1999) {
+        return { success: false, message: 'Minimum order value of ₹1,999 required for FESTIVE20.' };
+      }
       setCouponCode(cleanCode);
-      setDiscountPercent(20);
+      setDiscountType('PERCENTAGE');
+      setDiscountValue(20);
       localStorage.setItem('unistore_coupon', cleanCode);
       return { success: true, message: 'Coupon applied! 20% festive discount added.' };
+    }
+    if (cleanCode === 'FLAT500') {
+      if (subtotal < 2999) {
+        return { success: false, message: 'Minimum order value of ₹2,999 required for FLAT500.' };
+      }
+      setCouponCode(cleanCode);
+      setDiscountType('FIXED');
+      setDiscountValue(500);
+      localStorage.setItem('unistore_coupon', cleanCode);
+      return { success: true, message: 'Coupon applied! Flat ₹500 discount added.' };
     }
     return { success: false, message: 'Invalid or expired coupon code.' };
   };
 
   const removeCoupon = () => {
     setCouponCode(undefined);
-    setDiscountPercent(0);
+    setDiscountType('PERCENTAGE');
+    setDiscountValue(0);
     localStorage.removeItem('unistore_coupon');
   };
 

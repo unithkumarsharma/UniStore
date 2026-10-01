@@ -13,7 +13,9 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [wishlist, setWishlist] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('unistore_wishlist');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : [];
     } catch {
       return [];
     }

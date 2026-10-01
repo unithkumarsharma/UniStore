@@ -2,6 +2,7 @@ import random
 from flask import Blueprint, request, jsonify
 from app.auth.routes import require_role
 from app.models import db, Product, Order, User, Category, ProductImage
+from app.supabase_client import get_supabase
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
@@ -9,20 +10,59 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 @require_role(['ADMIN', 'SUPER_ADMIN', 'STAFF'])
 def get_metrics():
     try:
-        orders = Order.query.all()
-        total_sales = sum(ord.total_amount for ord in orders)
-        order_count = len(orders)
-        total_products = Product.query.count()
-        low_stock_count = Product.query.filter(Product.stock < 20).count()
-        total_users = User.query.count()
+        # 1. Try SQLAlchemy
+        try:
+            orders = Order.query.all()
+            total_sales = sum(ord.total_amount for ord in orders)
+            order_count = len(orders)
+            total_products = Product.query.count()
+            low_stock_count = Product.query.filter(Product.stock < 20).count()
+            total_users = User.query.count()
+
+            return jsonify({
+                'gross_sales': total_sales,
+                'order_count': order_count,
+                'average_order_value': round(total_sales / order_count, 2) if order_count > 0 else 0.0,
+                'low_stock_count': low_stock_count,
+                'total_products': total_products,
+                'total_customers': total_users,
+            }), 200
+        except Exception:
+            pass
+
+        # 2. Fallback to Supabase REST
+        sp = get_supabase()
+        if sp:
+            o_res = sp.table('orders').select('id, total_amount').execute()
+            orders = o_res.data or []
+            total_sales = sum(float(o.get('total_amount', 0)) for o in orders)
+            order_count = len(orders)
+
+            p_res = sp.table('products').select('id, stock').execute()
+            products = p_res.data or []
+            total_products = len(products)
+            low_stock_count = len([p for p in products if (p.get('stock') or 0) < 20])
+
+            u_res = sp.table('users').select('id').execute()
+            users = u_res.data or []
+            total_users = len(users)
+
+            return jsonify({
+                'gross_sales': total_sales,
+                'order_count': order_count,
+                'average_order_value': round(total_sales / order_count, 2) if order_count > 0 else 0.0,
+                'low_stock_count': low_stock_count,
+                'total_products': total_products,
+                'total_customers': total_users,
+            }), 200
 
         return jsonify({
-            'gross_sales': total_sales,
-            'order_count': order_count,
-            'average_order_value': round(total_sales / order_count, 2) if order_count > 0 else 0.0,
-            'low_stock_count': low_stock_count,
-            'total_products': total_products,
-            'total_customers': total_users,
+            'gross_sales': 0.0,
+            'order_count': 0,
+            'average_order_value': 0.0,
+            'low_stock_count': 0,
+            'total_products': 0,
+            'total_customers': 0,
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -77,7 +117,7 @@ def add_product():
 @require_role(['ADMIN', 'SUPER_ADMIN', 'STAFF'])
 def toggle_product_status(product_id):
     try:
-        product = Product.query.get(product_id)
+        product = db.session.get(Product, product_id)
         if not product:
             return jsonify({'error': 'Product not found'}), 404
         product.is_active = not product.is_active

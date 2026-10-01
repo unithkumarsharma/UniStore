@@ -187,6 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setToken(null);
     localStorage.removeItem('unistore_token');
+    localStorage.removeItem('unistore_cache_current_user');
     logoutFirebase().catch(() => {});
   };
 
