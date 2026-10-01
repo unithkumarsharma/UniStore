@@ -4,12 +4,71 @@ import hashlib
 from app import create_app
 from config.settings import Config
 
+class TestConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = 'test-secret-key-123'
+    RAZORPAY_KEY_ID = 'rzp_test_unistore_key_2026'
+    RAZORPAY_KEY_SECRET = 'unistore_razorpay_secret_key_2026'
+
 @pytest.fixture
 def client():
-    app = create_app(Config)
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
+    app = create_app(TestConfig)
+    with app.app_context():
+        from app.models import db, Product, Category, Coupon
+        from app.products.routes import invalidate_products_cache
+        from app.categories.routes import invalidate_categories_cache
+
+        db.create_all()
+        invalidate_products_cache()
+        invalidate_categories_cache()
+
+        # Seed categories
+        cat1 = Category(id='cat-1', name='Tech & Audio', slug='tech-audio', image_url='https://example.com/tech.jpg', display_order=1, is_active=True)
+        db.session.add(cat1)
+        for i, (name, slug) in enumerate([
+            ('Home & Living', 'home-living'),
+            ('Desk Setup', 'desk-setup'),
+            ('Travel Gear', 'travel-gear'),
+            ('Coffee & Kitchen', 'coffee-kitchen'),
+            ('Self Care', 'self-care'),
+        ], start=2):
+            db.session.add(Category(id=f'cat-{i}', name=name, slug=slug, image_url='https://example.com/cat.jpg', display_order=i, is_active=True))
+
+        # Seed product
+        prod = Product(
+            id='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            name='Aura Sound Pro Wireless Noise-Cancelling Headphones',
+            slug='aura-sound-pro-headphones',
+            description='Test headphones',
+            category_id='cat-1',
+            base_price=8499.0,
+            compare_at_price=10999.0,
+            sku='UNI-AURA-01',
+            stock=25,
+            is_active=True,
+            rating=4.9,
+            review_count=128
+        )
+        db.session.add(prod)
+
+        # Seed coupon
+        coupon = Coupon(
+            code='WELCOME10',
+            discount_type='PERCENTAGE',
+            discount_value=10.0,
+            min_order_amount=999.0,
+            max_discount=500.0,
+            is_active=True
+        )
+        db.session.add(coupon)
+        db.session.commit()
+
+        with app.test_client() as client:
+            yield client
+
+        db.drop_all()
 
 def test_health_check(client):
     response = client.get('/api/health')

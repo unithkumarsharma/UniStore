@@ -17,19 +17,55 @@ def invalidate_products_cache():
     _CATALOG_CACHE['products'] = None
     _CATALOG_CACHE['timestamp'] = 0
 
+from app.supabase_client import get_supabase
+
 def fetch_all_active_products():
     now = time.time()
     if _CATALOG_CACHE['products'] is not None and (now - _CATALOG_CACHE['timestamp']) < _CATALOG_CACHE['ttl']:
         return _CATALOG_CACHE['products']
 
-    # Eager load relationships in a single combined SQL query
-    products = Product.query.options(
-        joinedload(Product.images),
-        joinedload(Product.variants),
-        joinedload(Product.category)
-    ).filter_by(is_active=True).all()
+    try:
+        # Eager load relationships in a single combined SQL query
+        products = Product.query.options(
+            joinedload(Product.images),
+            joinedload(Product.variants),
+            joinedload(Product.category)
+        ).filter_by(is_active=True).all()
+        serialized = [p.to_dict() for p in products]
+    except Exception as sql_err:
+        print(f"⚠️ Direct SQL query failed ({sql_err}). Falling back to Supabase HTTPS REST API...")
+        sp = get_supabase()
+        if sp:
+            res = sp.table('products').select('*, images:product_images(*), variants:product_variants(*), category:categories(*)').eq('is_active', True).execute()
+            data = res.data or []
+            serialized = []
+            for item in data:
+                cat = item.get('category') or {}
+                raw_imgs = sorted(item.get('images') or [], key=lambda x: (not x.get('is_primary', False), x.get('display_order', 0)))
+                serialized.append({
+                    'id': item.get('id'),
+                    'name': item.get('name'),
+                    'slug': item.get('slug'),
+                    'description': item.get('description'),
+                    'category_id': item.get('category_id'),
+                    'category_name': cat.get('name', ''),
+                    'category_slug': cat.get('slug', ''),
+                    'base_price': float(item.get('base_price', 0)),
+                    'compare_at_price': float(item.get('compare_at_price')) if item.get('compare_at_price') else None,
+                    'sku': item.get('sku'),
+                    'stock': item.get('stock', 0),
+                    'is_active': item.get('is_active', True),
+                    'is_featured': item.get('is_featured', False),
+                    'is_bestseller': item.get('is_bestseller', False),
+                    'rating': float(item.get('rating', 4.8) or 4.8),
+                    'review_count': item.get('review_count', 0),
+                    'badge': item.get('badge'),
+                    'images': raw_imgs,
+                    'variants': [v for v in (item.get('variants') or []) if v.get('is_active', True)],
+                })
+        else:
+            raise sql_err
 
-    serialized = [p.to_dict() for p in products]
     _CATALOG_CACHE['products'] = serialized
     _CATALOG_CACHE['timestamp'] = now
     return serialized

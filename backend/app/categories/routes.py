@@ -15,13 +15,34 @@ def invalidate_categories_cache():
     _CATEGORIES_CACHE['categories'] = None
     _CATEGORIES_CACHE['timestamp'] = 0
 
+from app.supabase_client import get_supabase
+
 def fetch_all_active_categories():
     now = time.time()
     if _CATEGORIES_CACHE['categories'] is not None and (now - _CATEGORIES_CACHE['timestamp']) < _CATEGORIES_CACHE['ttl']:
         return _CATEGORIES_CACHE['categories']
 
-    cats = Category.query.filter_by(is_active=True).order_by(Category.display_order.asc()).all()
-    serialized = [c.to_dict() for c in cats]
+    try:
+        cats = Category.query.filter_by(is_active=True).order_by(Category.display_order.asc()).all()
+        serialized = [c.to_dict() for c in cats]
+    except Exception as sql_err:
+        print(f"⚠️ Direct SQL query failed ({sql_err}). Falling back to Supabase HTTPS REST API...")
+        sp = get_supabase()
+        if sp:
+            res = sp.table('categories').select('*').eq('is_active', True).order('display_order').execute()
+            data = res.data or []
+            serialized = [{
+                'id': c.get('id'),
+                'name': c.get('name'),
+                'slug': c.get('slug'),
+                'description': c.get('description'),
+                'image_url': c.get('image_url'),
+                'display_order': c.get('display_order', 0),
+                'is_active': c.get('is_active', True),
+            } for c in data]
+        else:
+            raise sql_err
+
     _CATEGORIES_CACHE['categories'] = serialized
     _CATEGORIES_CACHE['timestamp'] = now
     return serialized
