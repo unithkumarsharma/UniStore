@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { Product } from '../../types';
 import { formatCurrency, calculateDiscount } from '../../utils/currency';
 import { useCart } from '../../store/CartContext';
 import { useWishlist } from '../../store/WishlistContext';
+import { useToast } from '../../store/ToastContext';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -14,8 +15,10 @@ interface QuickViewModalProps {
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80';
 
 export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClose }) => {
-  const { addToCart } = useCart();
+  const navigate = useNavigate();
+  const { addToCart, setIsCartOpen } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState<string>('Obsidian');
@@ -57,10 +60,40 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
   const handleAddToCart = () => {
     addToCart(product, undefined, quantity);
     setJustAdded(true);
+    toast.cart(
+      {
+        name: product.name,
+        image: selectedImage || FALLBACK_IMAGE,
+        price: product.base_price * quantity,
+      },
+      {
+        label: 'View Bag',
+        onClick: () => {
+          onClose();
+          setIsCartOpen(true);
+        },
+      }
+    );
     setTimeout(() => {
       setJustAdded(false);
       onClose();
-    }, 900);
+    }, 600);
+  };
+
+  const handleBuyNow = () => {
+    addToCart(product, undefined, quantity);
+    onClose();
+    navigate('/checkout');
+  };
+
+  const handleToggleWishlist = () => {
+    const wasLiked = isInWishlist(product.id);
+    toggleWishlist(product.id);
+    if (!wasLiked) {
+      toast.success('Saved to Wishlist', product.name);
+    } else {
+      toast.info('Removed from Wishlist', product.name);
+    }
   };
 
   const colorOptions = [
@@ -211,62 +244,76 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
               </div>
             </div>
 
-            {/* Bottom Actions: Stepper + Add to Bag + Wishlist */}
-            <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center gap-3">
-              {/* Quantity Counter */}
-              <div className="flex items-center border border-zinc-200 rounded-full bg-zinc-50 px-2 py-1">
+            {/* Bottom Actions: Stepper + Add to Bag + Buy Now + Wishlist */}
+            <div className="mt-6 pt-4 border-t border-zinc-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="flex items-center gap-2">
+                {/* Quantity Counter */}
+                <div className="flex items-center border border-zinc-200 rounded-full bg-zinc-50 px-2 py-1">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-7 h-7 flex items-center justify-center text-zinc-600 hover:text-zinc-900 text-base font-bold disabled:opacity-30 cursor-pointer"
+                    disabled={quantity <= 1}
+                  >
+                    −
+                  </button>
+                  <span className="w-8 text-center text-xs font-bold text-zinc-900 tabular-nums">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-7 h-7 flex items-center justify-center text-zinc-600 hover:text-zinc-900 text-base font-bold cursor-pointer"
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Wishlist Button */}
                 <button
                   type="button"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-7 h-7 flex items-center justify-center text-zinc-600 hover:text-zinc-900 text-base font-bold disabled:opacity-30"
-                  disabled={quantity <= 1}
+                  onClick={handleToggleWishlist}
+                  aria-label="Wishlist"
+                  className={`w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center transition-all hover:bg-zinc-50 active:scale-90 cursor-pointer ${
+                    isLiked ? 'text-red-500 border-red-200 bg-red-50/50' : 'text-zinc-600'
+                  }`}
                 >
-                  −
-                </button>
-                <span className="w-8 text-center text-xs font-bold text-zinc-900 tabular-nums">
-                  {quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-7 h-7 flex items-center justify-center text-zinc-600 hover:text-zinc-900 text-base font-bold"
-                >
-                  +
+                  <span
+                    className="material-symbols-outlined text-[20px]"
+                    style={isLiked ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                  >
+                    favorite
+                  </span>
                 </button>
               </div>
 
-              {/* Add to Bag Button */}
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                className={`flex-1 py-3 px-5 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-95 ${
-                  justAdded
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-zinc-950 text-white hover:bg-zinc-800'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  {justAdded ? 'check' : 'shopping_bag'}
-                </span>
-                <span>{justAdded ? 'Added to Bag' : `Add to Bag • ${formatCurrency(product.base_price * quantity)}`}</span>
-              </button>
-
-              {/* Wishlist Button */}
-              <button
-                type="button"
-                onClick={() => toggleWishlist(product.id)}
-                aria-label="Wishlist"
-                className={`w-11 h-11 rounded-full border border-zinc-200 flex items-center justify-center transition-all hover:bg-zinc-50 active:scale-90 ${
-                  isLiked ? 'text-red-500 border-red-200 bg-red-50/50' : 'text-zinc-600'
-                }`}
-              >
-                <span
-                  className="material-symbols-outlined text-[20px]"
-                  style={isLiked ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              <div className="flex-1 flex items-center gap-2">
+                {/* Add to Bag Button */}
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className={`flex-1 py-3 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 active:scale-95 cursor-pointer ${
+                    justAdded
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200'
+                  }`}
                 >
-                  favorite
-                </span>
-              </button>
+                  <span className="material-symbols-outlined text-[17px]">
+                    {justAdded ? 'check' : 'shopping_bag'}
+                  </span>
+                  <span>{justAdded ? 'Added!' : 'Add to Bag'}</span>
+                </button>
+
+                {/* Buy Now Button */}
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  className="flex-1 py-3 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm bg-zinc-950 text-white hover:bg-zinc-800 transition-all duration-200 active:scale-95 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[17px]">bolt</span>
+                  <span>Buy Now</span>
+                </button>
+              </div>
             </div>
 
             {/* Link to Full Page */}

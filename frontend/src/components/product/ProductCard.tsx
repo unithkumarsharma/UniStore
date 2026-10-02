@@ -137,6 +137,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               </span>
             </button>
 
+            {/* Mobile Quick View Trigger (Top Right below wishlist) */}
+            <button
+              type="button"
+              onClick={handleOpenQuickView}
+              aria-label="Quick preview"
+              className="sm:hidden absolute top-11.5 right-2.5 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-sm text-zinc-500 hover:text-zinc-950 active:scale-90 z-10"
+            >
+              <span className="material-symbols-outlined text-[17px]">visibility</span>
+            </button>
+
             {/* Quick View Button (Desktop Hover Overlay) */}
             <div className="hidden sm:flex absolute inset-x-3 bottom-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-2 group-hover:translate-y-0">
               <button

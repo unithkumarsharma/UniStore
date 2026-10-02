@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { TaxInvoiceModal } from '../components/orders/TaxInvoiceModal';
+import { LiveTrackingRadar, type DeliveryPhase } from '../components/orders/LiveTrackingRadar';
 
 export const OrderTrackingPage: React.FC = () => {
   useDocumentTitle('Live Order Tracking');
@@ -13,6 +14,7 @@ export const OrderTrackingPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
+  const [phase, setPhase] = useState<DeliveryPhase>('OUT_FOR_DELIVERY');
 
   useEffect(() => {
     if (orderId) {
@@ -42,27 +44,57 @@ export const OrderTrackingPage: React.FC = () => {
     };
   }, [currentTrackingId]);
 
-  const defaultSteps = [
-    { title: 'Order Verified & Authorized', desc: 'Payment verified and inventory allocated', time: '10:30 AM', completed: true, current: false },
-    { title: 'Serialized QC Assessment & Sealed', desc: 'Product inspected by UniStore White-Glove standards', time: '02:15 PM', completed: true, current: false },
-    { title: 'Dispatched via Air Hub', desc: 'Handed over to carrier for priority transit', time: '08:40 AM', completed: true, current: false },
-    { title: 'In Transit — Out for Doorstep Delivery', desc: 'Assigned to courier executive with secure OTP', time: '11:20 AM', completed: true, current: true },
-    { title: 'Delivered & Handed Over', desc: 'Package receipt signed by recipient', time: 'Estimated by 4:00 PM', completed: false, current: false },
-  ];
-
-  const steps = trackingData?.events && trackingData.events.length > 0
-    ? trackingData.events.map((ev: any, idx: number, arr: any[]) => ({
-        title: ev.title,
-        desc: ev.desc,
-        time: ev.time,
-        completed: ev.completed ?? true,
-        current: idx === arr.length - 1 && ev.completed,
-      }))
-    : defaultSteps;
-
   const carrierName = trackingData?.carrier || 'Bluedart Priority Air';
   const awbNumber = trackingData?.tracking_number || '83920194821';
   const estimatedDelivery = trackingData?.estimated_delivery || 'Today by 4:00 PM';
+
+  const steps = [
+    {
+      title: 'Order Verified & Authorized',
+      desc: 'Payment verified and inventory allocated in warehouse',
+      time: '10:30 AM',
+      completed: true,
+      current: false,
+    },
+    {
+      title: 'Serialized QC Assessment & Sealed',
+      desc: 'Product inspected by UniStore White-Glove standards',
+      time: '02:15 PM',
+      completed: true,
+      current: false,
+    },
+    {
+      title: 'Dispatched via Air Hub',
+      desc: 'Handed over to carrier for priority transit',
+      time: '08:40 AM',
+      completed: phase !== 'TRANSIT',
+      current: phase === 'TRANSIT',
+    },
+    {
+      title:
+        phase === 'NEARBY'
+          ? 'Courier Nearby (< 500m Away)'
+          : phase === 'DELIVERED'
+          ? 'Delivered to Doorstep'
+          : 'In Transit — Out for Doorstep Delivery',
+      desc:
+        phase === 'NEARBY'
+          ? 'Courier executive is approaching your building gate'
+          : phase === 'DELIVERED'
+          ? 'Package delivered securely with recipient signature'
+          : 'Assigned to courier executive with secure OTP',
+      time: phase === 'DELIVERED' ? '03:45 PM' : '11:20 AM',
+      completed: phase === 'DELIVERED',
+      current: phase === 'OUT_FOR_DELIVERY' || phase === 'NEARBY',
+    },
+    {
+      title: 'Delivered & Handed Over',
+      desc: 'Package receipt verified via 4-digit secret OTP',
+      time: phase === 'DELIVERED' ? 'Just now' : 'Estimated by 4:00 PM',
+      completed: phase === 'DELIVERED',
+      current: false,
+    },
+  ];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,22 +181,14 @@ export const OrderTrackingPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Delivery ETA Highlight Card */}
-          <div className="bg-zinc-950 text-white rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold tracking-wider uppercase mb-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>Active Delivery In Progress</span>
-              </div>
-              <h3 className="text-lg font-bold">Estimated Delivery: {estimatedDelivery}</h3>
-              <p className="text-xs text-zinc-400 mt-0.5">Delivery OTP will be sent via SMS when executive reaches location.</p>
-            </div>
-            <div className="flex-shrink-0">
-              <span className="inline-block px-3 py-1.5 rounded-full bg-zinc-800 text-zinc-200 text-xs font-semibold">
-                On Schedule
-              </span>
-            </div>
-          </div>
+          {/* Live Delivery Telemetry Radar & Route Map */}
+          <LiveTrackingRadar
+            orderNumber={currentTrackingId}
+            carrierName={carrierName}
+            estimatedDelivery={estimatedDelivery}
+            phase={phase}
+            onPhaseChange={setPhase}
+          />
 
           {/* Step-by-step Timeline */}
           <div>
