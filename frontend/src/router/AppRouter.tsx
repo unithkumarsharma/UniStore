@@ -14,6 +14,8 @@ const OrderConfirmationPage = lazy(() => import('../pages/OrderConfirmationPage'
 const OrderTrackingPage = lazy(() => import('../pages/OrderTrackingPage').then((m) => ({ default: m.OrderTrackingPage })));
 const AccountPage = lazy(() => import('../pages/AccountPage').then((m) => ({ default: m.AccountPage })));
 const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })));
+const SupplierPortalPage = lazy(() => import('../pages/SupplierPortalPage').then((m) => ({ default: m.SupplierPortalPage })));
+const RiderAppPage = lazy(() => import('../pages/RiderAppPage').then((m) => ({ default: m.RiderAppPage })));
 const InfoPage = lazy(() => import('../pages/InfoPage').then((m) => ({ default: m.InfoPage })));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
@@ -28,6 +30,13 @@ export const AppRouter: React.FC = () => {
   return (
     <Suspense fallback={<RouteLoading />}>
       <Routes>
+        {/* Dedicated Merchant & Delivery Partner Portals */}
+        <Route path="supplier" element={<SupplierPortalPage />} />
+        <Route path="vendor" element={<SupplierPortalPage />} />
+        <Route path="rider" element={<RiderAppPage />} />
+        <Route path="delivery" element={<RiderAppPage />} />
+
+        {/* Consumer Storefront Experience */}
         <Route path="/" element={<StorefrontLayout />}>
           <Route index element={<HomePage />} />
           <Route path="shop" element={<ShopPage />} />

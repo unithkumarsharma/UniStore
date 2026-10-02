@@ -214,6 +214,35 @@ export const AccountPage: React.FC = () => {
           </button>
         </div>
 
+        {/* Partner Portals Quick Access Ribbon */}
+        <div className="bg-zinc-900 text-white rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md mb-6">
+          <div className="flex items-center gap-3">
+            <span className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-emerald-400">
+              <span className="material-symbols-outlined text-[20px]">hub</span>
+            </span>
+            <div>
+              <div className="font-bold text-xs sm:text-sm text-white">UniStore Ecosystem Portals</div>
+              <p className="text-[11px] text-zinc-400">Access Supplier Merchant Center or Fleet Delivery Partner App</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Link
+              to="/supplier"
+              className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition-colors border border-zinc-700/60"
+            >
+              <span className="material-symbols-outlined text-[15px] text-amber-400">storefront</span>
+              <span>Supplier Hub</span>
+            </Link>
+            <Link
+              to="/rider"
+              className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[15px]">electric_moped</span>
+              <span>Rider App</span>
+            </Link>
+          </div>
+        </div>
+
         {/* Tab Navigation */}
         <div className="flex border-b border-zinc-200 gap-2 sm:gap-6 mb-8 overflow-x-auto no-scrollbar">
           <button

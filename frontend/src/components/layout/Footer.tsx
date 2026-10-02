@@ -166,8 +166,9 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2.5">
               {[
                 { name: 'Track Shipment', to: '/orders/track', icon: 'local_shipping' },
+                { name: 'Supplier Merchant Hub', to: '/supplier', icon: 'storefront' },
+                { name: 'Fleet Delivery App', to: '/rider', icon: 'electric_moped' },
                 { name: 'Returns & Exchanges', to: '/account/orders', icon: 'autorenew' },
-                { name: 'FAQs', to: '/#faq', icon: 'help' },
                 { name: 'Terms of Service', to: '/terms', icon: 'description' },
                 { name: 'Privacy Policy', to: '/privacy', icon: 'lock' },
               ].map((link) => (
