@@ -6,6 +6,7 @@ import type { Product, ProductVariant } from '../types';
 import { formatCurrency, calculateDiscount } from '../utils/currency';
 import { useCart } from '../store/CartContext';
 import { useWishlist } from '../store/WishlistContext';
+import { useToast } from '../store/ToastContext';
 import { ProductCard } from '../components/product/ProductCard';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { PincodeEstimator } from '../components/product/PincodeEstimator';
@@ -82,8 +83,9 @@ const ZoomableImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => 
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, setIsCartOpen } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { toast } = useToast();
 
   const [product, setProduct] = useState<Product | null>(null);
   useDocumentTitle(product ? `${product.name} — ₹${product.base_price}` : 'Product Details');
@@ -220,6 +222,28 @@ export const ProductDetailPage: React.FC = () => {
     addToCart(product, selectedVariant, quantity);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2000);
+    const activeImg = images[selectedImageIndex]?.image_url || images[0]?.image_url || '';
+    toast.cart(
+      {
+        name: product.name,
+        image: activeImg,
+        price: currentPrice * quantity,
+      },
+      {
+        label: 'View Bag',
+        onClick: () => setIsCartOpen(true),
+      }
+    );
+  };
+
+  const handleToggleWishlist = () => {
+    const wasLiked = isInWishlist(product.id);
+    toggleWishlist(product.id);
+    if (!wasLiked) {
+      toast.success('Saved to Wishlist', `${product.name} is in your wishlist`);
+    } else {
+      toast.info('Removed from Wishlist', `${product.name} was removed`);
+    }
   };
 
   const handleAddReview = (e: React.FormEvent) => {
@@ -239,6 +263,7 @@ export const ProductDetailPage: React.FC = () => {
     setNewReviewAuthor('');
     setNewReviewComment('');
     setShowReviewForm(false);
+    toast.success('Review Submitted', 'Thank you for reviewing this product!');
   };
 
   // Average rating
@@ -296,7 +321,7 @@ export const ProductDetailPage: React.FC = () => {
               {/* Wishlist + Share — Top Right */}
               <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
                 <button
-                  onClick={() => toggleWishlist(product.id)}
+                  onClick={handleToggleWishlist}
                   className={`w-10 h-10 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-md transition-all hover:scale-110 active:scale-90 ${
                     isLiked ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'
                   }`}

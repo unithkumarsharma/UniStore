@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
+import { useToast } from '../store/ToastContext';
 import { api } from '../services/api';
 import { formatCurrency } from '../utils/currency';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { AddressModal, type UserAddress } from '../components/account/AddressModal';
 
 interface UserOrder {
   id: string;
@@ -26,11 +28,74 @@ export const AccountPage: React.FC = () => {
   const { user, logout, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'profile' | 'perks'>('orders');
 
+  const { toast } = useToast();
   const [name, setName] = useState(user?.full_name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [orders, setOrders] = useState<UserOrder[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const [addresses, setAddresses] = useState<UserAddress[]>(() => {
+    const saved = localStorage.getItem('unistore_user_addresses');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+    return [
+      {
+        id: 'addr-1',
+        name: user?.full_name || 'Arjun Sharma',
+        phone: user?.phone || '+91 98765 43210',
+        line1: 'Flat 402, Sea Breeze Apartments, Hill Road',
+        line2: 'Near Nature Basket, Bandra West',
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        pincode: '400050',
+        tag: 'Home',
+        isDefault: true,
+      },
+    ];
+  });
+  const [editingAddress, setEditingAddress] = useState<UserAddress | null>(null);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+
+  const handleSaveAddress = (newAddr: UserAddress) => {
+    let updated: UserAddress[];
+    if (addresses.some((a) => a.id === newAddr.id)) {
+      updated = addresses.map((a) => {
+        if (a.id === newAddr.id) return newAddr;
+        if (newAddr.isDefault) return { ...a, isDefault: false };
+        return a;
+      });
+      toast.success('Address Updated', 'Your delivery details have been saved.');
+    } else {
+      updated = [
+        ...addresses.map((a) => (newAddr.isDefault ? { ...a, isDefault: false } : a)),
+        newAddr,
+      ];
+      toast.success('Address Added', 'New delivery destination saved to your account.');
+    }
+    setAddresses(updated);
+    localStorage.setItem('unistore_user_addresses', JSON.stringify(updated));
+  };
+
+  const handleDeleteAddress = (id: string) => {
+    const updated = addresses.filter((a) => a.id !== id);
+    setAddresses(updated);
+    localStorage.setItem('unistore_user_addresses', JSON.stringify(updated));
+    toast.info('Address Removed', 'The destination was removed from your address book.');
+  };
+
+  const handleSetDefaultAddress = (id: string) => {
+    const updated = addresses.map((a) => ({
+      ...a,
+      isDefault: a.id === id,
+    }));
+    setAddresses(updated);
+    localStorage.setItem('unistore_user_addresses', JSON.stringify(updated));
+    toast.success('Default Updated', 'Primary shipping address has been updated.');
+  };
 
   useEffect(() => {
     if (user?.full_name) setName(user.full_name);
@@ -61,6 +126,7 @@ export const AccountPage: React.FC = () => {
     e.preventDefault();
     updateProfile({ full_name: name, phone });
     setSaveSuccess(true);
+    toast.success('Profile Updated', 'Your account details have been saved.');
     setTimeout(() => setSaveSuccess(false), 3000);
   };
 
@@ -282,42 +348,89 @@ export const AccountPage: React.FC = () => {
         {/* TAB 2: Saved Addresses */}
         {activeTab === 'addresses' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 shadow-sm space-y-4 relative">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-zinc-950">Primary Residence</h3>
-                <span className="text-[10px] font-bold bg-zinc-950 text-white px-2.5 py-0.5 rounded-full">
-                  DEFAULT
-                </span>
+            {addresses.map((addr) => (
+              <div
+                key={addr.id}
+                className="bg-white border border-zinc-200/90 rounded-3xl p-6 shadow-xs space-y-4 relative flex flex-col justify-between hover:border-zinc-300 transition-all"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-black text-zinc-950">{addr.name}</span>
+                      <span className="text-[10px] font-extrabold bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full border border-zinc-200 uppercase">
+                        {addr.tag}
+                      </span>
+                    </div>
+                    {addr.isDefault ? (
+                      <span className="text-[10px] font-black bg-zinc-950 text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                        DEFAULT
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleSetDefaultAddress(addr.id)}
+                        className="text-[10px] font-bold text-zinc-500 hover:text-zinc-950 transition underline"
+                      >
+                        Set as Default
+                      </button>
+                    )}
+                  </div>
+                  <div className="text-xs text-zinc-600 space-y-1 leading-relaxed">
+                    <p className="font-semibold text-zinc-900">{addr.phone}</p>
+                    <p>{addr.line1}</p>
+                    {addr.line2 && <p className="text-zinc-500">{addr.line2}</p>}
+                    <p className="font-medium text-zinc-900">
+                      {addr.city}, {addr.state} — {addr.pincode}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-zinc-100 flex items-center justify-between">
+                  <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                    <span>Serviceable Area</span>
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingAddress(addr);
+                        setIsAddressModalOpen(true);
+                      }}
+                      className="text-xs font-bold text-zinc-950 hover:underline flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">edit</span>
+                      <span>Edit</span>
+                    </button>
+                    {addresses.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAddress(addr.id)}
+                        className="text-xs font-bold text-rose-600 hover:underline flex items-center gap-1"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">delete</span>
+                        <span>Delete</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="text-xs text-zinc-600 space-y-1 leading-relaxed">
-                <p className="font-bold text-zinc-950 text-sm">{name || user?.full_name || 'Valued Member'}</p>
-                <p className="text-zinc-500">{phone || user?.phone || '+91 98765 43210'}</p>
-                <p>Flat 402, Sea Breeze Apartments, Bandra West</p>
-                <p>Near Hill Road, Bandra</p>
-                <p>Mumbai, Maharashtra — 400050, India</p>
-              </div>
-              <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
-                <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                  <span>Deliverable within 48h</span>
-                </span>
-                <button
-                  onClick={() => alert('Address modification is enabled at the checkout step.')}
-                  className="text-xs font-bold text-zinc-950 hover:underline"
-                >
-                  Edit Address
-                </button>
-              </div>
-            </div>
+            ))}
 
             {/* Add Address Card */}
-            <div className="border-2 border-dashed border-zinc-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:border-zinc-400 transition-colors cursor-pointer bg-white/50">
-              <div className="w-12 h-12 rounded-full bg-zinc-100 text-zinc-500 flex items-center justify-center mb-3">
+            <div
+              onClick={() => {
+                setEditingAddress(null);
+                setIsAddressModalOpen(true);
+              }}
+              className="border-2 border-dashed border-zinc-200 hover:border-zinc-950 rounded-3xl p-6 flex flex-col items-center justify-center text-center transition-all cursor-pointer bg-zinc-50/50 hover:bg-white group min-h-[190px]"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-zinc-100 group-hover:bg-zinc-950 group-hover:text-white text-zinc-700 flex items-center justify-center mb-3 transition-colors shadow-2xs">
                 <span className="material-symbols-outlined text-[24px]">add</span>
               </div>
-              <h4 className="text-xs font-bold text-zinc-900">Add New Destination</h4>
-              <p className="text-[11px] text-zinc-500 mt-1 max-w-xs">
-                Save an office or secondary delivery address for one-click checkout.
+              <h4 className="text-xs font-extrabold text-zinc-900 group-hover:text-zinc-950">Add New Destination</h4>
+              <p className="text-[11px] text-zinc-400 mt-1 max-w-xs">
+                Save an office, home, or secondary delivery address for 1-click checkout.
               </p>
             </div>
           </div>
@@ -451,6 +564,14 @@ export const AccountPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Address Management Modal */}
+      <AddressModal
+        isOpen={isAddressModalOpen}
+        onClose={() => setIsAddressModalOpen(false)}
+        onSave={handleSaveAddress}
+        initialData={editingAddress}
+      />
     </div>
   );
 };

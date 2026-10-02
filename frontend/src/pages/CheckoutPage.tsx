@@ -2,33 +2,103 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../store/CartContext';
 import { useAuth } from '../store/AuthContext';
+import { useToast } from '../store/ToastContext';
 import { formatCurrency } from '../utils/currency';
 import { api } from '../services/api';
 import type { Address } from '../types';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+
+interface SavedAddressItem {
+  id: string;
+  name: string;
+  phone: string;
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+  isDefault?: boolean;
+  tag: 'Home' | 'Work' | 'Other';
+}
 
 export const CheckoutPage: React.FC = () => {
   useDocumentTitle('Secure Checkout');
   const navigate = useNavigate();
   const { cart, clearCart, applyCoupon, removeCoupon } = useCart();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [showMobileSummary, setShowMobileSummary] = useState(false);
   const [couponInput, setCouponInput] = useState('');
   const [couponFeedback, setCouponFeedback] = useState<string | null>(null);
 
-  const [address, setAddress] = useState<Address>({
-    id: 'addr-1',
-    full_name: user?.full_name || 'Arjun Sharma',
-    phone: user?.phone || '+91 98765 43210',
-    address_line1: 'Flat 402, Sea Breeze Apts, Bandra West',
-    address_line2: 'Near Hill Road',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    postal_code: '400050',
-    country: 'India',
-    is_default: true,
+  const [savedAddresses] = useState<SavedAddressItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('unistore_user_addresses');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [
+      {
+        id: 'addr-1',
+        name: 'Arjun Sharma',
+        phone: '+91 98765 43210',
+        street: 'Flat 402, Sea Breeze Apts, Bandra West',
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        pincode: '400050',
+        isDefault: true,
+        tag: 'Home',
+      },
+      {
+        id: 'addr-2',
+        name: 'Arjun Sharma (Studio)',
+        phone: '+91 98765 43210',
+        street: 'WeWork Enam Sambhav, BKC G Block',
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        pincode: '400051',
+        isDefault: false,
+        tag: 'Work',
+      },
+    ];
+  });
+
+  const [address, setAddress] = useState<Address>(() => {
+    try {
+      const stored = localStorage.getItem('unistore_user_addresses');
+      if (stored) {
+        const list: SavedAddressItem[] = JSON.parse(stored);
+        const def = list.find((a) => a.isDefault) || list[0];
+        if (def) {
+          return {
+            id: def.id,
+            full_name: def.name,
+            phone: def.phone,
+            address_line1: def.street,
+            city: def.city,
+            state: def.state,
+            postal_code: def.pincode,
+            country: 'India',
+            is_default: true,
+          };
+        }
+      }
+    } catch {}
+    return {
+      id: 'addr-1',
+      full_name: user?.full_name || 'Arjun Sharma',
+      phone: user?.phone || '+91 98765 43210',
+      address_line1: 'Flat 402, Sea Breeze Apts, Bandra West',
+      address_line2: 'Near Hill Road',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      postal_code: '400050',
+      country: 'India',
+      is_default: true,
+    };
   });
 
   const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'CARD' | 'NETBANKING' | 'COD'>('UPI');
@@ -122,7 +192,24 @@ export const CheckoutPage: React.FC = () => {
     if (!couponInput.trim()) return;
     const res = applyCoupon(couponInput);
     setCouponFeedback(res.message);
-    if (res.success) setCouponInput('');
+    if (res.success) {
+      setCouponInput('');
+      toast.success('Coupon Applied!', res.message);
+    } else {
+      toast.error('Invalid Coupon', res.message);
+    }
+  };
+
+  const handleProceedToStep2 = () => {
+    if (!address.full_name.trim() || !address.phone.trim() || !address.address_line1.trim() || !address.city.trim() || !address.postal_code.trim()) {
+      toast.error('Incomplete Address', 'Please complete all required shipping fields');
+      return;
+    }
+    if (!/^\d{6}$/.test(address.postal_code.trim())) {
+      toast.error('Invalid PIN Code', 'Please enter a valid 6-digit Indian PIN code');
+      return;
+    }
+    setStep(2);
   };
 
   const loadRazorpayScript = (): Promise<boolean> => {
@@ -627,26 +714,94 @@ export const CheckoutPage: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1.5">Full Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={address.full_name}
-                      onChange={(e) => setAddress({ ...address, full_name: e.target.value })}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 focus:bg-white focus:outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 transition-all"
-                    />
+                {/* Saved Address Fast-Selector */}
+                {savedAddresses.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                      Saved Addresses
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {savedAddresses.map((s) => {
+                        const isSelected =
+                          address.id === s.id ||
+                          (address.full_name === s.name && address.postal_code === s.pincode);
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => {
+                              setAddress({
+                                id: s.id,
+                                full_name: s.name,
+                                phone: s.phone,
+                                address_line1: s.street,
+                                city: s.city,
+                                state: s.state,
+                                postal_code: s.pincode,
+                                country: 'India',
+                                is_default: s.isDefault,
+                              });
+                              toast.info('Address Selected', `Delivering to ${s.tag} (${s.city})`);
+                            }}
+                            className={`p-3.5 rounded-2xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                              isSelected
+                                ? 'border-zinc-950 bg-zinc-950 text-white shadow-md'
+                                : 'border-zinc-200 bg-zinc-50 hover:bg-white text-zinc-700 hover:border-zinc-300'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-bold text-xs truncate">{s.name}</span>
+                                <span
+                                  className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
+                                    isSelected ? 'bg-white/20 text-white' : 'bg-zinc-200 text-zinc-700'
+                                  }`}
+                                >
+                                  {s.tag}
+                                </span>
+                              </div>
+                              <p className={`text-[11px] line-clamp-1 ${isSelected ? 'text-zinc-300' : 'text-zinc-500'}`}>
+                                {s.street}
+                              </p>
+                              <p className={`text-[11px] font-medium mt-0.5 ${isSelected ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                                {s.city}, {s.state} — {s.pincode}
+                              </p>
+                            </div>
+                            <div className={`text-[10px] mt-2 font-mono ${isSelected ? 'text-zinc-400' : 'text-zinc-400'}`}>
+                              📞 {s.phone}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1.5">Mobile Phone (Delivery OTP)</label>
-                    <input
-                      type="tel"
-                      required
-                      value={address.phone}
-                      onChange={(e) => setAddress({ ...address, phone: e.target.value })}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 focus:bg-white focus:outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 transition-all"
-                    />
+                )}
+
+                <div className="pt-2 border-t border-zinc-100">
+                  <div className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-3">
+                    Or Edit Delivery Details
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-700 mb-1.5">Full Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={address.full_name}
+                        onChange={(e) => setAddress({ ...address, full_name: e.target.value })}
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 focus:bg-white focus:outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-700 mb-1.5">Mobile Phone (Delivery OTP)</label>
+                      <input
+                        type="tel"
+                        required
+                        value={address.phone}
+                        onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 focus:bg-white focus:outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -698,8 +853,8 @@ export const CheckoutPage: React.FC = () => {
                 <div className="pt-4 flex justify-end">
                   <button
                     type="button"
-                    onClick={() => setStep(2)}
-                    className="py-3 px-7 rounded-full bg-zinc-950 text-white font-bold text-xs flex items-center gap-2 shadow-sm hover:bg-zinc-800 active:scale-95 transition-all"
+                    onClick={handleProceedToStep2}
+                    className="py-3 px-7 rounded-full bg-zinc-950 text-white font-bold text-xs flex items-center gap-2 shadow-sm hover:bg-zinc-800 active:scale-95 transition-all cursor-pointer"
                   >
                     <span>Review Order</span>
                     <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -1359,7 +1514,10 @@ export const CheckoutPage: React.FC = () => {
                     <span className="text-emerald-700 font-bold text-[11px]">Applied: {cart.coupon_code}</span>
                     <button
                       type="button"
-                      onClick={removeCoupon}
+                      onClick={() => {
+                        removeCoupon();
+                        toast.info('Coupon Removed', 'Coupon discount has been removed');
+                      }}
                       className="text-zinc-400 hover:text-zinc-700 text-xs"
                     >
                       Remove

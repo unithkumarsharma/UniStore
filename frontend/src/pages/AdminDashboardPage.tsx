@@ -6,10 +6,12 @@ import { useRealtimeSync } from '../hooks/useRealtimeSync';
 import { formatCurrency } from '../utils/currency';
 import type { Product, Category } from '../types';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useToast } from '../store/ToastContext';
 
 export const AdminDashboardPage: React.FC = () => {
   useDocumentTitle('UniStore Executive Management Portal');
   const { user, isAdmin, logout, token } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'inventory' | 'suppliers'>('overview');
@@ -145,9 +147,9 @@ export const AdminDashboardPage: React.FC = () => {
       setShowAddProductModal(false);
       setNewProdName('');
       setNewProdImageUrl('');
-      alert('Product added to catalog successfully!');
+      toast.success('Product Added', 'New product was added to catalog successfully!');
     } catch (err: any) {
-      alert(`Failed to add product: ${err.message}`);
+      toast.error('Add Failed', err.message || 'Failed to add product');
     }
   };
 

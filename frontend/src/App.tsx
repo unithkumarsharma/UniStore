@@ -8,6 +8,7 @@ import { AuthProvider } from './store/AuthContext';
 import { CartProvider } from './store/CartContext';
 import { WishlistProvider } from './store/WishlistContext';
 import { PlatformProvider } from './store/PlatformContext';
+import { ToastProvider } from './store/ToastContext';
 import { AppRouter } from './router/AppRouter';
 import { ScrollToTop } from './components/common/ScrollToTop';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
@@ -53,7 +54,9 @@ export function App() {
             <WishlistProvider>
               <CartProvider>
                 <PlatformProvider>
-                  <AppRouter />
+                  <ToastProvider>
+                    <AppRouter />
+                  </ToastProvider>
                 </PlatformProvider>
               </CartProvider>
             </WishlistProvider>

@@ -4,6 +4,7 @@ import type { Product } from '../../types';
 import { formatCurrency, calculateDiscount } from '../../utils/currency';
 import { useCart } from '../../store/CartContext';
 import { useWishlist } from '../../store/WishlistContext';
+import { useToast } from '../../store/ToastContext';
 import { QuickViewModal } from './QuickViewModal';
 
 interface ProductCardProps {
@@ -37,8 +38,9 @@ const getSwatches = (categorySlug?: string, name?: string) => {
 };
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart } = useCart();
+  const { addToCart, setIsCartOpen } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { toast } = useToast();
   const [justAdded, setJustAdded] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
@@ -54,7 +56,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     e.stopPropagation();
     addToCart(product);
     setJustAdded(true);
+    toast.cart(
+      { name: product.name, image: imgSrc, price: product.base_price },
+      { label: 'View Bag', onClick: () => setIsCartOpen(true) }
+    );
     setTimeout(() => setJustAdded(false), 1200);
+  };
+
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product.id);
+    if (!isLiked) {
+      toast.success('Saved to Wishlist', product.name);
+    } else {
+      toast.info('Removed from Wishlist', product.name);
+    }
   };
 
   const handleOpenQuickView = (e: React.MouseEvent) => {
@@ -106,11 +123,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             {/* Wishlist Button (Top Right) */}
             <button
               type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleWishlist(product.id);
-              }}
+              onClick={handleToggleWishlist}
               aria-label={isLiked ? 'Remove from wishlist' : 'Add to wishlist'}
               className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-sm hover:scale-110 active:scale-90 z-10 ${
                 isLiked ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'
